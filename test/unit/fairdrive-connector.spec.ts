@@ -107,6 +107,47 @@ describe('fairdrive connector module', () => {
             size: faker.datatype.number(),
           },
         ],
+      }),
+    )
+
+    const fs = await fairosConnector.getFSHandler(mounts[0])
+    const entries = await fs.entries()
+    const entry = await entries.next()
+    expect(entry.value[0]).toBe('panama')
+    const end = await entries.next()
+    expect(end.done).toBe(true)
+  })
+
+  it('should list files', async () => {
+    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
+
+    expect(fairosConnector).toBeDefined()
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        address: faker.finance.ethereumAddress(),
+        message: 'mock response ',
+        nameHash: faker.datatype.hexadecimal({ length: 32, prefix: '', case: 'lower' }),
+        publicKey: faker.datatype.hexadecimal({ length: 64, prefix: '', case: 'lower' }),
+      }),
+    )
+
+    await fairosConnector.userLogin(username, password)
+
+    expect(fetchMock).toHaveBeenCalled()
+
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        pods: ['panama', 'colombia', 'costa_rica'],
+        sharedPods: ['nicaragua'],
+      }),
+    )
+
+    const mounts = await fairosConnector.listMounts()
+    expect(fetchMock).toHaveBeenCalled()
+    expect(mounts.length).toBe(3)
+
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
         files: [
           {
             accessTime: faker.datatype.datetime().getTime(),
@@ -124,14 +165,10 @@ describe('fairdrive connector module', () => {
     )
 
     const fs = await fairosConnector.getFSHandler(mounts[0])
-    const entries = fs.entries()
-    for await (const entry of entries) {
-      console.log(entry)
-    }
-  })
-
-  xit('should list files', async () => {
-    // Provider constructor interface: Provider(baseProvider, options { signer })
-    //    const fairosConnector = module.bind('fairos')
+    const entries = await fs.entries()
+    const entry = await entries.next()
+    expect(entry.value[0].tag).toBe(0)
+    const end = await entries.next()
+    expect(end.done).toBe(true)
   })
 })

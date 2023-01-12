@@ -163,14 +163,13 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
 
   async *entries() {
     const entries = await this.driver.read(this.mount)
-
-    if (entries && entries.dirs.length > 0) {
+    if (entries && entries.dirs && entries.dirs.length > 0) {
       for (const entry of entries.dirs) {
         yield [entry, new FolderHandle(this.mount, this.driver)] as [string, FolderHandle]
       }
     }
 
-    if (entries && entries.files.length > 0) {
+    if (entries && entries.files && entries.files.length > 0) {
       for (const entry of entries.files) {
         yield [entry, new FileHandle(this.mount, this.driver, entry)] as [string, FileHandle]
       }
