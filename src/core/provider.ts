@@ -1,6 +1,5 @@
 import { getOriginPrivateDirectory } from 'file-system-access'
 import {
-  Adapter,
   FileSystemFileHandleAdapter,
   FileSystemFolderHandleAdapter,
   WriteChunk,
