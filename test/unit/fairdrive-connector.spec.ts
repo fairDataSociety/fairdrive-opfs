@@ -259,7 +259,7 @@ describe('fairdrive connector module', () => {
     const driver = module.getConnectedProviders('fairos')
     await driver.filesystemDriver.download('file', mounts[0], {})
   })
-  xit('should delete file', async () => {
+  it('should delete file', async () => {
     const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
 
     expect(fairosConnector).toBeDefined()
@@ -289,30 +289,16 @@ describe('fairdrive connector module', () => {
 
     fetchMock.mockResponseOnce(
       JSON.stringify({
-        files: [
-          {
-            accessTime: faker.datatype.datetime().getTime(),
-            blockSize: '1024',
-            contentType: faker.system.mimeType(),
-            creationTime: faker.datatype.datetime().getTime(),
-            mode: 0,
-            modificationTime: faker.datatype.datetime().getTime(),
-            name: faker.system.fileName(),
-            size: faker.datatype.number(),
-            tag: 0,
-          },
-        ],
+        filePath: faker.system.filePath(),
+        podName: 'panama',
       }),
     )
 
-    const fs = await fairosConnector.getFSHandler(mounts[0])
-    const entries = await fs.entries()
-    const entry = await entries.next()
-    expect(entry.value[0].tag).toBe(0)
-    const end = await entries.next()
-    expect(end.done).toBe(true)
+    const driver = module.getConnectedProviders('fairos')
+    const resp = await driver.filesystemDriver.delete('/file', mounts[0])
+    expect(resp.podName).toBe(mounts[0].name)
   })
-  xit('should create dir', async () => {
+  it('should create dir', async () => {
     const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
 
     expect(fairosConnector).toBeDefined()
@@ -342,30 +328,16 @@ describe('fairdrive connector module', () => {
 
     fetchMock.mockResponseOnce(
       JSON.stringify({
-        files: [
-          {
-            accessTime: faker.datatype.datetime().getTime(),
-            blockSize: '1024',
-            contentType: faker.system.mimeType(),
-            creationTime: faker.datatype.datetime().getTime(),
-            mode: 0,
-            modificationTime: faker.datatype.datetime().getTime(),
-            name: faker.system.fileName(),
-            size: faker.datatype.number(),
-            tag: 0,
-          },
-        ],
+        dirPath: '/dir',
+        podName: 'panama',
       }),
     )
 
-    const fs = await fairosConnector.getFSHandler(mounts[0])
-    const entries = await fs.entries()
-    const entry = await entries.next()
-    expect(entry.value[0].tag).toBe(0)
-    const end = await entries.next()
-    expect(end.done).toBe(true)
+    const driver = module.getConnectedProviders('fairos')
+    const resp = await driver.filesystemDriver.createDir('/dir', mounts[0])
+    expect(resp.dirPath).toBe('/dir')
   })
-  xit('should validate if file exists', async () => {
+  it('should validate if file exists', async () => {
     const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
 
     expect(fairosConnector).toBeDefined()
@@ -395,27 +367,30 @@ describe('fairdrive connector module', () => {
 
     fetchMock.mockResponseOnce(
       JSON.stringify({
-        files: [
+        accessTime: faker.date.past(),
+        blockSize: '1024',
+        blocks: [
           {
-            accessTime: faker.datatype.datetime().getTime(),
-            blockSize: '1024',
-            contentType: faker.system.mimeType(),
-            creationTime: faker.datatype.datetime().getTime(),
-            mode: 0,
-            modificationTime: faker.datatype.datetime().getTime(),
-            name: faker.system.fileName(),
-            size: faker.datatype.number(),
-            tag: 0,
+            compressedSize: 'string',
+            reference: 'string',
+            size: 'string',
           },
         ],
+        compression: 'gzip',
+        contentType: faker.system.mimeType(),
+        creationTime: faker.date.past(),
+        fileName: faker.system.fileName(),
+        filePath: faker.system.filePath(),
+        fileSize: '1024',
+        mode: 0,
+        modificationTime: faker.date.past(),
+        podName: 'panama',
+        tag: 0,
       }),
     )
 
-    const fs = await fairosConnector.getFSHandler(mounts[0])
-    const entries = await fs.entries()
-    const entry = await entries.next()
-    expect(entry.value[0].tag).toBe(0)
-    const end = await entries.next()
-    expect(end.done).toBe(true)
+    const driver = module.getConnectedProviders('fairos')
+    const resp = await driver.filesystemDriver.exists('/file', mounts[0])
+    expect(resp).toBe(false)
   })
 })
