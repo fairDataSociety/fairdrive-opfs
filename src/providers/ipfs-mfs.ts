@@ -46,19 +46,19 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 
       return true
     } catch (e) {
+      console.error(e)
       return false
     }
   }
 
   async read(mount: Mount): Promise<Entries> {
-    const res = await this.client.files.ls(`${mount.path}`)
     const entries = {
       dirs: [],
       files: [],
       mount,
     } as Entries
 
-    for await (const i of res) {
+    for await (const i of this.client.files.ls(`${mount.path}`)) {
       if (i.type === 'directory') {
         entries.dirs.push(i.cid.toString())
       } else {
@@ -82,7 +82,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
       bs = res
     }
 
-    return bs
+    return bs as Uint8Array
   }
 
   /**

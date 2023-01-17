@@ -48,7 +48,7 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    return res.json()
+    return (await res.json()).dirPath === name
   }
 
   async delete(filePath: string, mount: Mount): Promise<any> {
@@ -66,7 +66,7 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    return res.json()
+    return (await res.json()).filePath === filePath
   }
 
   async read(mount: Mount): Promise<Entries> {

@@ -286,17 +286,17 @@ describe('fairdrive connector module', () => {
     const mounts = await fairosConnector.listMounts()
     expect(fetchMock).toHaveBeenCalled()
     expect(mounts.length).toBe(3)
-
+    const file = faker.system.filePath()
     fetchMock.mockResponseOnce(
       JSON.stringify({
-        filePath: faker.system.filePath(),
+        filePath: file,
         podName: 'panama',
       }),
     )
 
     const driver = module.getConnectedProviders('fairos')
-    const resp = await driver.filesystemDriver.delete('/file', mounts[0])
-    expect(resp.podName).toBe(mounts[0].name)
+    const resp = await driver.filesystemDriver.delete(file, mounts[0])
+    expect(resp).toBe(true)
   })
   it('should create dir', async () => {
     const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
@@ -335,7 +335,7 @@ describe('fairdrive connector module', () => {
 
     const driver = module.getConnectedProviders('fairos')
     const resp = await driver.filesystemDriver.createDir('/dir', mounts[0])
-    expect(resp.dirPath).toBe('/dir')
+    expect(resp).toBe(true)
   })
   it('should validate if file exists', async () => {
     const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
