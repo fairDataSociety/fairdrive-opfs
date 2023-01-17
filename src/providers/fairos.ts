@@ -84,11 +84,13 @@ export class FairosProviderDriver implements ProviderDriver {
       return {
         dirs: data.dirs,
         files: data.files,
+        mount,
       }
     } else {
       return {
         dirs: [],
         files: [],
+        mount,
       }
     }
   }

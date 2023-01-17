@@ -31,6 +31,7 @@
     "fetch-blob": "^3.2.0",
     "file-system-access": "^1.0.4",
     "formdata-polyfill": "^4.0.10",
+    "ipfs-http-client": "^60.0.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {

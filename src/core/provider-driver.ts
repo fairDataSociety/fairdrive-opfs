@@ -11,14 +11,14 @@ export interface ProviderDriver {
    * @returns A boolean value indicating whether the file or directory exists
    */
   exists: (name: string, mount: Mount) => Promise<boolean>
-  createDir: (name: string, mount: Mount) => Promise<any>
+  createDir: (name: string, mount: Mount) => Promise<boolean>
   /**
    * Delete a file or directory
    * @param name - name of the file or directory
    * @param mount - mount point
    * @returns Returns true if the file or directory was deleted, else false
    */
-  delete: (name: string, mount: Mount) => Promise<any>
+  delete: (name: string, mount: Mount) => Promise<boolean>
   /**
    * Read entries from a mount point
    * @param mount - mount point

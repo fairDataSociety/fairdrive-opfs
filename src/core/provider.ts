@@ -11,8 +11,9 @@ import { ProviderDriver } from './provider-driver'
 
 //
 export interface Entries {
-  files: string[]
-  dirs: string[]
+  files: Array<string>
+  dirs: Array<string>
+  mount: Mount
 }
 
 /**
