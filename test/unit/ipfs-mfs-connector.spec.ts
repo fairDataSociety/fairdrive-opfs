@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config()
 import { faker } from '@faker-js/faker'
 import { FdpConnectModule } from '../../src/core/module'
-import { IPFSMfsProvider, FairosProvider } from '../../src/providers'
+import { IPFSMfsProvider } from '../../src/providers'
 import fetchMock from 'jest-fetch-mock'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 import { Blob } from 'fetch-blob'
@@ -52,24 +52,28 @@ describe('ipfs mfs driver', () => {
 
     expect(ipfs).toBeDefined()
 
-    fetchMock.mockResponseOnce(
-      JSON.stringify({
-        Entries: [
-          {
-            Hash: faker.datatype.hexadecimal({ prefix: '' }),
-            Name: faker.system.fileName(),
-            Size: '1024',
-            Type: '1',
-          },
-          {
-            Hash: faker.datatype.hexadecimal({ prefix: '' }),
-            Name: faker.system.fileName(),
-            Size: '1024',
-            Type: '1',
-          },
-        ],
-      }),
-    )
+    fetchMock.mockOnce(async req => {
+      req.headers.set('Content-Type', 'application/json')
+
+      return Promise.resolve({
+        body: JSON.stringify({
+          Entries: [
+            {
+              Hash: faker.datatype.hexadecimal({ prefix: '' }),
+              Name: faker.system.fileName(),
+              Size: '1024',
+              Type: '1',
+            },
+            {
+              Hash: faker.datatype.hexadecimal({ prefix: '' }),
+              Name: faker.system.fileName(),
+              Size: '1024',
+              Type: '1',
+            },
+          ],
+        }),
+      })
+    })
 
     const DefaultMount = { name: 'default', path: '/' }
     const fs = await ipfs.getFSHandler(DefaultMount)
