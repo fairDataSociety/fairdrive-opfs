@@ -50,7 +50,7 @@ export const FairdriveBrowser = ({ id, name }) => {
   ]
   const [modalIsOpen, setIsOpen] = React.useState(false)
   const [selectedFileHandle, setSelectedFileHandle] = React.useState(null)
-  let fairosConnector
+  const [connector, setConnector] = React.useState(null)
 
   function openModal() {
     setIsOpen(true)
@@ -65,9 +65,10 @@ export const FairdriveBrowser = ({ id, name }) => {
   useEffect(() => {
     async function getPods() {
       setLoading(true)
-      fairosConnector = await module.connect('fairos', FairosProvider)
+      const fairosConnector = await module.connect('fairos', FairosProvider)
       await fairosConnector.userLogin(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
 
+      setConnector(fairosConnector)
       try {
         const podList = await fairosConnector.listMounts()
         setPods(podList)
@@ -83,15 +84,10 @@ export const FairdriveBrowser = ({ id, name }) => {
   async function handlePodChange(e) {
     setLoadingMessage(`Loading pod ${e.target.value}...`)
     setLoading(true)
-    const adapter = await import('./dist/index.js')
-    // await fdp.account.login(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
 
-    const pod = { name: e.target.value }
-    console.log(`Using pod ${pod.name}`)
-    const rootHandle = await getOriginPrivateDirectory(adapter, {
-      fdp,
-      podname: pod.name,
-      path: currentPath,
+    const rootHandle = await connector.getFSHandler({
+      name: e.target.value,
+      path: '/',
     })
 
     if (currentPath === '/') {
@@ -123,7 +119,7 @@ export const FairdriveBrowser = ({ id, name }) => {
       }
     }
 
-    setPod({ ...pod })
+    setPod({ ...e.target.value })
     setItems(files)
     setLoading(false)
     setLoadingMessage('')
@@ -241,12 +237,12 @@ export const FairdriveBrowser = ({ id, name }) => {
   return (
     <div className="md:container md:mx-auto">
       <div>
-        <label for="countries" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <label for="pods" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
           Pods
         </label>
         <select
           onChange={handlePodChange}
-          id="countries"
+          id="pods"
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         >
           <option defaultValue={''}>Select a pod</option>
