@@ -51,6 +51,7 @@ export const FairdriveBrowser = ({ id, name }) => {
   const [modalIsOpen, setIsOpen] = React.useState(false)
   const [selectedFileHandle, setSelectedFileHandle] = React.useState(null)
   const [connector, setConnector] = React.useState(null)
+  const [currentFolderHandle, setCurrentFolderHandle] = React.useState(null)
 
   function openModal() {
     setIsOpen(true)
@@ -90,6 +91,7 @@ export const FairdriveBrowser = ({ id, name }) => {
       path: '/',
     })
 
+    setCurrentFolderHandle(rootHandle)
     if (currentPath === '/') {
       setFolderChain([
         {
@@ -151,22 +153,15 @@ export const FairdriveBrowser = ({ id, name }) => {
 
           // returns a File Instance
           const file = await picker.getFile()
-          const adapter = await import('./dist/index.js')
 
-          // copy the file over to a another place
-          const rootHandle = await getOriginPrivateDirectory(adapter, {
-            fdp,
-            path: currentPath,
-            podname: podItem.name,
-          })
-          const fileHandle = await rootHandle.getFileHandle(file.name, { create: true })
+          const fileHandle = await currentFolderHandle.getFileHandle(file.name, { create: true })
           const writable = await fileHandle.createWritable({ keepExistingData: false })
           await writable.write(file)
           await writable.close()
 
           const files = []
 
-          for await (let [name, entry] of rootHandle.entries()) {
+          for await (let [name, entry] of currentFolderHandle.entries()) {
             if (entry.kind === 'directory') {
               const item = { id: name, name: name, isDir: true, handle: entry }
               files.push(item)
@@ -188,19 +183,11 @@ export const FairdriveBrowser = ({ id, name }) => {
 
           const file = selectedFileHandle.selectedFilesForAction[0].handle
 
-          const adapter = await import('./dist/index.js')
-
-          // copy the file over to a another place
-          const rootHandle = await getOriginPrivateDirectory(adapter, {
-            fdp,
-            path: currentPath,
-            podname: podItem.name,
-          })
-          await rootHandle.removeEntry(file.name)
+          await currentFolderHandle.removeEntry(file.name)
 
           const files = []
 
-          for await (let [name, entry] of rootHandle.entries()) {
+          for await (let [name, entry] of currentFolderHandle.entries()) {
             if (entry.kind === 'directory') {
               const item = { id: name, name: name, isDir: true, handle: entry }
               files.push(item)
