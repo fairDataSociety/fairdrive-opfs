@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import { Mount, Entries, FdpConnectProvider } from '../core/provider'
 import { ProviderDriver } from '../core/provider-driver'
 import { create, IPFSHTTPClient } from 'ipfs-http-client'

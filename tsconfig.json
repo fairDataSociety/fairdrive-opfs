@@ -7,18 +7,16 @@
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "module": "ES2020",
-    "strict": true,
+    "strict": false,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "skipLibCheck": true,
     "emitDecoratorMetadata": true,
-    "typeRoots": ["./src/types", "node_modules/@types"],
     "rootDirs": ["src"],
     "outDir": "dist",
+    "skipLibCheck": true,
     "noImplicitAny": false,
-    "allowJs": true,
-    "suppressImplicitAnyIndexErrors": true
+    "types": ["node", "jest"],
   },
 
-  "exclude": ["../node_modules", "../node_modules/file-system-access"]
+  "exclude": ["../node_modules"]
 }
