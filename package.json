@@ -1,6 +1,6 @@
 {
   "name": "@fairdatasociety/fairdrive-connector",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 ",
   "main": "dist/index.js",
   "repository": {

@@ -226,4 +226,34 @@ export class FairosProvider extends FdpConnectProvider {
       return []
     }
   }
+
+  async podOpen(mount: Mount): Promise<void> {
+    const res = await fetch(`${this.host}v1/pod/open`, {
+      method: 'POST',
+      body: JSON.stringify({ podName: mount.name }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+
+    if (res.status !== 200) {
+      throw new Error(res.message)
+    }
+  }
+
+  async podClose(mount: Mount): Promise<void> {
+    const res = await fetch(`${this.host}v1/pod/close`, {
+      method: 'POST',
+      body: JSON.stringify({ podName: mount.name }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+
+    if (res.status !== 200) {
+      throw new Error(res.message)
+    }
+  }
 }
