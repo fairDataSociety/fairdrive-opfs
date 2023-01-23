@@ -46,6 +46,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
       return true
     } catch (e) {
       console.error(e)
+
       return false
     }
   }
@@ -59,9 +60,9 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 
     for await (const i of this.client.files.ls(`${mount.path}`)) {
       if (i.type === 'directory') {
-        entries.dirs.push(i.cid.toString())
+        entries.dirs.push(i.name)
       } else {
-        entries.files.push(i.cid.toString())
+        entries.files.push(i.name)
       }
     }
 
@@ -77,7 +78,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
    */
   async download(id: string, mount: Mount, options = {}): Promise<any> {
     let bs
-    for await (const res of this.client.files.read(`${mount.path}/${id}`, options)) {
+    for await (const res of this.client.files.read(`${mount.path}${id}`, options)) {
       bs = res
     }
 
@@ -91,7 +92,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
    * @param options - options
    */
   async upload(file: File, mount: Mount, options = {}): Promise<any> {
-    const res = this.client.files.write(`${mount.path}/${file.name}`, file, options as any)
+    const res = this.client.files.write(`${mount.path}${file.name}`, file, { create: true })
 
     return res
   }

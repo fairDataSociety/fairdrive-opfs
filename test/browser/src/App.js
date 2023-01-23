@@ -1,11 +1,13 @@
 import React from 'react'
 import './App.css'
 import { FairdriveBrowser } from './fairdrive'
+import { IpfsBrowser } from './ipfs'
 
 const App = () => {
   return (
     <div className="App" style={{ display: 'flex' }}>
-      <FairdriveBrowser name="fairos" id="fairos"  />
+      <IpfsBrowser name="ipfs" id="ipfs" />
+      <FairdriveBrowser name="fairos" id="fairos" />
     </div>
   )
 }

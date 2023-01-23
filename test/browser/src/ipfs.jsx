@@ -7,15 +7,15 @@ import { ChonkyActions } from 'chonky'
 import { useCallback } from 'react'
 import Modal from 'react-modal'
 import { fileSave } from 'browser-fs-access'
-import { FdpConnectModule, FairosProvider } from '@fairdatasociety/fairdrive-connector'
+import { FdpConnectModule, IPFSMfsProvider } from '@fairdatasociety/fairdrive-connector'
 
 const module = new FdpConnectModule({
   providers: {
-    fairos: {
+    ipfs: {
       options: {
-        host: 'https://fairos.staging.fairdatasociety.org/',
+        host: 'http://localhost:5001',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/fairos',
+      provider: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
     },
   },
 })
@@ -33,7 +33,7 @@ const customStyles = {
   },
 }
 
-export const FairdriveBrowser = ({ id, name }) => {
+export const IpfsBrowser = ({ id, name }) => {
   const [currentPath, setCurrentPath] = React.useState('/')
   const [items, setItems] = React.useState([])
   const [pods, setPods] = React.useState([])
@@ -56,6 +56,7 @@ export const FairdriveBrowser = ({ id, name }) => {
   function openModal() {
     setIsOpen(true)
   }
+
   // eslint-disable-next-line
   function afterOpenModal() {}
 
@@ -66,17 +67,11 @@ export const FairdriveBrowser = ({ id, name }) => {
   useEffect(() => {
     async function getPods() {
       setLoading(true)
-      const fairosConnector = await module.connect('fairos', FairosProvider)
-      await fairosConnector.userLogin(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
+      const conn = await module.connect('ipfs', IPFSMfsProvider)
 
-      setConnector(fairosConnector)
-      try {
-        const podList = await fairosConnector.listMounts()
-        setPods(podList)
-      } catch (e) {
-        // eslint-disable-next-line
-        console.log(e)
-      }
+      setConnector(conn)
+      const podList = [{ name: 'root', path: '/' }]
+      setPods(podList)
       setLoading(false)
     }
 
@@ -188,6 +183,7 @@ export const FairdriveBrowser = ({ id, name }) => {
 
           const files = []
 
+          setItems([])
           for await (let [name, entry] of currentFolderHandle.entries()) {
             if (entry.kind === 'directory') {
               const item = { id: name, name: name, isDir: true, handle: entry }
