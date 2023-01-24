@@ -1,6 +1,6 @@
 {
-  "name": "@fairDataSociety/fairdrive-connector",
-  "version": "0.1.0",
+  "name": "@fairdatasociety/fairdrive-connector",
+  "version": "0.1.2",
   "description": "Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 ",
   "main": "dist/index.js",
   "repository": {
@@ -9,8 +9,13 @@
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose",
+    "prepare": "rimraf dist && npm run compile:types && tsc",
+    "test:unit": "jest --verbose --selectProjects=node:unit node:unit --config=jest.config.ts",
     "compile": "webpack --progress --env target=node",
-    "compile:types": "tsc --emitDeclarationOnly --declaration --skipLibCheck"
+    "compile:types": "tsc --emitDeclarationOnly --declaration --skipLibCheck",
+    "lint": "eslint --fix \"src/**/*.ts\" && prettier --write \"src/**/*.ts\"",
+    "lint:check": "eslint \"src/**/*.ts\" && prettier --check \"src/**/*.ts\"",
+    "check:types": "tsc --project tsconfig.json --skipLibCheck"
   },
   "keywords": [
     "web3",
@@ -24,14 +29,11 @@
   },
   "homepage": "https://github.com/fairDataSociety/fairdrive-connector#readme",
   "dependencies": {
-    "@ethersphere/swarm-cid": "^0.1.0",
-    "@fairdatasociety/beeson": "^0.1.1",
-    "@fairdatasociety/fdp-storage": "^0.5.1",
     "dotenv": "^16.0.3",
     "fetch-blob": "^3.2.0",
     "file-system-access": "^1.0.4",
     "formdata-polyfill": "^4.0.10",
-    "node-fetch": "^2.6.7"
+    "ipfs-http-client": "^60.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
@@ -42,6 +44,7 @@
     "@faker-js/faker": "^7.6.0",
     "@jest/globals": "^29.3.1",
     "@types/jest": "^28.1.8",
+    "@types/node": "^18.11.18",
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack-bundle-analyzer": "^4.4.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",

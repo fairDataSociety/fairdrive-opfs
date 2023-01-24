@@ -48,7 +48,7 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    return res.json()
+    return (await res.json()).dirPath === name
   }
 
   async delete(filePath: string, mount: Mount): Promise<any> {
@@ -66,7 +66,7 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    return res.json()
+    return (await res.json()).filePath === filePath
   }
 
   async read(mount: Mount): Promise<Entries> {
@@ -84,11 +84,13 @@ export class FairosProviderDriver implements ProviderDriver {
       return {
         dirs: data.dirs,
         files: data.files,
+        mount,
       }
     } else {
       return {
         dirs: [],
         files: [],
+        mount,
       }
     }
   }
@@ -222,6 +224,36 @@ export class FairosProvider extends FdpConnectProvider {
       })
     } else {
       return []
+    }
+  }
+
+  async podOpen(mount: Mount): Promise<void> {
+    const res = await fetch(`${this.host}v1/pod/open`, {
+      method: 'POST',
+      body: JSON.stringify({ podName: mount.name }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+
+    if (res.status !== 200) {
+      throw new Error(res.message)
+    }
+  }
+
+  async podClose(mount: Mount): Promise<void> {
+    const res = await fetch(`${this.host}v1/pod/close`, {
+      method: 'POST',
+      body: JSON.stringify({ podName: mount.name }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+
+    if (res.status !== 200) {
+      throw new Error(res.message)
     }
   }
 }
