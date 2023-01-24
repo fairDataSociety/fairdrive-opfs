@@ -1,43 +1,62 @@
+import { getOriginPrivateDirectory } from 'file-system-access'
 import {
-  Adapter,
   FileSystemFileHandleAdapter,
   FileSystemFolderHandleAdapter,
   WriteChunk,
 } from 'file-system-access/lib/interfaces'
 
-import { FdpConnectProviderConfig } from './provider-config'
 const { INVALID, GONE, SYNTAX } = errors
 import { errors } from 'file-system-access/lib/util.js'
+import { ProviderDriver } from './provider-driver'
 
-export interface FdpOptions {
-  mount: string
-  path: string
+//
+export interface Entries {
+  files: Array<string>
+  dirs: Array<string>
+  mount: Mount
 }
 
-export interface ProviderDriver {
-  exists: (...args: any[]) => Promise<any> // no typing yet...
-  create: (...args: any[]) => Promise<any> // no typing yet...
-  delete: (...args: any[]) => Promise<any> // no typing yet...
-  read: (...args: any[]) => Promise<any> // no typing yet...
-  download: (...args: any[]) => Promise<any> // no typing yet...
-  upload: (...args: any[]) => Promise<any> // no typing yet...
-}
+/**
+ * FdpConnectProvider is the base class for all providers.
+ */
 export abstract class FdpConnectProvider {
-  constructor(private config: FdpConnectProviderConfig) {}
+  constructor(private config: any) {}
+
+  filesystemDriver!: ProviderDriver
+  initialize(options: any) {
+    Object.assign(this, options)
+  }
+
+  /**
+   * getFSHandler returns a FileSystemDirectoryHandle for the given provider.
+   * @param mount - mount point
+   * @returns a FileSystemDirectoryHandle
+   */
+  async getFSHandler(mount: Mount) {
+    const adapter = await import('./adapter') // FdpConnectAdapter(mount, this.filesystemDriver)
+
+    return getOriginPrivateDirectory(adapter, { mount, driver: this.filesystemDriver })
+  }
 }
 
 const File = globalThis.File
 const Blob = globalThis.Blob
 
+/**
+ * Mount represents a logical mount point for a provider to be mounted on.
+ */
 export interface Mount {
+  // path to the mount point
   path: string
+  // name of the mount point
   name: string
 }
 
 export class FairDriveMount implements Mount {
-  path: string
-  name: string
+  path = ''
+  name = ''
 }
+
 class Sink implements UnderlyingSink<WriteChunk> {
   private file: File
   private position = 0
@@ -52,14 +71,14 @@ class Sink implements UnderlyingSink<WriteChunk> {
   }
 
   /**
-   *
+   * Returns true if the file exists, else false
    * @param key
    * @param options
    * @returns
    */
   async has(key: string): Promise<boolean> {
     try {
-      return this.driver.exists(key)
+      return this.driver.exists(key, this.mount)
     } catch (e) {
       return false
     }
@@ -73,7 +92,7 @@ class Sink implements UnderlyingSink<WriteChunk> {
     return new Promise<void>(async (resolve, reject) => {
       const buffer = await this.file.arrayBuffer()
       try {
-        await this.driver.upload(this.mount.name, `${this.mount.path}${this.file.name}`, Buffer.from(buffer))
+        await this.driver.upload(this.file, this.mount, Buffer.from(buffer))
         resolve()
       } catch (e) {
         reject(e)
@@ -99,7 +118,7 @@ export class FileHandle implements FileSystemFileHandleAdapter {
 
   async getFile() {
     try {
-      const data = await this.driver.download(this.mount.name, `${this.mount.path}${this.name}`)
+      const data = await this.driver.download(`${this.mount.path}${this.name}`, this.mount, {})
 
       return new File([data.buffer], this.name)
     } catch (e) {
@@ -135,24 +154,24 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
   readable = true
   driver: ProviderDriver
 
-  constructor(mount: Mount, driver: ProviderDriver, name: string) {
+  constructor(mount: Mount, driver: ProviderDriver) {
     this.mount = mount
     this.driver = driver
-    this.name = name
+    this.name = this.mount.name
+    this.path = this.mount.path
   }
 
   async *entries() {
     const entries = await this.driver.read(this.mount)
-
-    if (entries && entries.getDirectories().length > 0) {
-      for (let entry of entries.getDirectories()) {
-        yield [entry.name, new FolderHandle(this.mount, this.driver, this.name)] as [string, FolderHandle]
+    if (entries && entries.dirs && entries.dirs.length > 0) {
+      for (const entry of entries.dirs) {
+        yield [entry, new FolderHandle(this.mount, this.driver)] as [string, FolderHandle]
       }
     }
 
-    if (entries && entries.getFiles().length > 0) {
-      for (let entry of entries.getFiles()) {
-        yield [entry.name, new FileHandle(this.mount, this.driver, this.name)] as [string, FileHandle]
+    if (entries && entries.files && entries.files.length > 0) {
+      for (const entry of entries.files) {
+        yield [entry, new FileHandle(this.mount, this.driver, entry)] as [string, FileHandle]
       }
     }
   }
@@ -164,15 +183,15 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
   async getDirectoryHandle(name: string, opts: FileSystemGetDirectoryOptions = {}) {
     return new Promise<FolderHandle>(async (resolve, reject) => {
       if (opts.create) {
-        await this.driver.create(this.mount.name, `${this.mount.path}${name}`)
+        await this.driver.createDir(`${this.mount.path}${name}`, this.mount)
 
-        resolve(new FolderHandle(this.mount, this.driver, name))
+        resolve(new FolderHandle(this.mount, this.driver))
       } else {
         try {
-          const entries = await this.driver.read(this.mount.name, `${this.path}${name}`)
+          const entries = await this.driver.read(this.mount)
 
-          if (entries.raw) {
-            resolve(new FolderHandle(this.mount, this.driver, name))
+          if (entries.files.length > 0 || entries.dirs.length > 0) {
+            resolve(new FolderHandle(this.mount, this.driver))
           }
         } catch (e) {
           reject(new DOMException(...GONE))
@@ -187,7 +206,7 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
         if (opts.create) {
           resolve(new FileHandle(this.mount, this.driver, name))
         } else {
-          const data = await this.driver.download(this.mount.name, `${this.mount.path}${name}`)
+          const data = await this.driver.download(`${this.mount.path}${name}`, this.mount, {})
           resolve(new FileHandle(this.mount, this.driver, name))
         }
       } catch (e) {
@@ -199,16 +218,10 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
   async removeEntry(name: string, opts: FileSystemRemoveOptions = {}) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        await this.driver.delete(this.mount.name, `${this.mount.path}${name}`)
+        await this.driver.delete(`${this.mount.path}${name}`, this.mount)
       } catch (e) {
         reject(new DOMException(...GONE))
       }
     })
   }
 }
-const adapter: Adapter<FdpOptions> = async (mount: Mount, driver: ProviderDriver) =>
-  new Promise(resolve => {
-    resolve(new FolderHandle(mount, driver, ''))
-  })
-
-export default adapter

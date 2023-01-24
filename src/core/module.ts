@@ -1,23 +1,35 @@
 import { FdpConnectModuleConfig } from './module-config'
-import { Permission } from './permission'
 import { FdpConnectProvider } from './provider'
-import { FdpConnectProviderConfig } from './provider-config'
 
+/**
+ * FdpConnectModule is the main entry point for the Fairdrive Connect library.
+ */
 export class FdpConnectModule {
-  providers!: {
-    [providerName: string]: FdpConnectProvider
+  // connected providers
+  bindings: Map<string, FdpConnectProvider> = new Map()
+  constructor(public config: FdpConnectModuleConfig) {}
+
+  /**
+   * Connects a provider to the module.
+   * @param providerName Provider name
+   * @param provider FdpConnectProvider type
+   * @returns A provider instance
+   */
+  connect<T extends FdpConnectProvider>(providerName: string, provider: { new (): T }) {
+    const providerInstance = new provider()
+    providerInstance.initialize(this.config.providers[providerName].options)
+
+    this.bindings.set(providerName, providerInstance)
+
+    return providerInstance
   }
-  permissions: Permission[] = []
 
-  public static LoadModuleConfig(config: FdpConnectModuleConfig) {
-
-  }
-
-  // addProvider<FairOSProvider, FairOSProviderConfig>
-  private addProvider<T extends FdpConnectProvider, A extends FdpConnectProviderConfig>(
-    provider: new (config: FdpConnectProviderConfig) => T,
-    providerConfig: A,
-  ) {
-    this.providers[providerConfig.name] = new provider(providerConfig)
+  /**
+   * Gets a connected provider.
+   * @param providerName Provider name
+   * @returns A provider instance
+   */
+  getConnectedProviders<T extends FdpConnectProvider>(providerName: string): T {
+    return this.bindings.get(providerName) as T
   }
 }

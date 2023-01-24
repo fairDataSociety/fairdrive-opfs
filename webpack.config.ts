@@ -35,7 +35,7 @@ const base = async (env?: Partial<WebpackEnvParams>): Promise<Configuration> => 
       path,
       filename,
       sourceMapFilename: filename + '.map',
-      library: 'BeeSon',
+      library: 'fairdrive-connector',
       libraryTarget: 'umd',
       globalObject: 'this',
     },
