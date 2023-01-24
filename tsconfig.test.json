@@ -1,11 +1,10 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "src",
-    "test",
-    "jest.config.ts"
-  ],
+  "include": ["src", "test", "jest.config.ts"],
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "suppressImplicitAnyIndexErrors": true
   }
 }
