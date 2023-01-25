@@ -9,6 +9,7 @@ Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0
 - [Usage](#usage)
 - [API](#api)
 - [Drivers](#drivers)
+- [References](#references)
 - [License](#license)
 
 ## Install
@@ -244,6 +245,13 @@ See `/docs` for generated TypeScript documentation.
 ## Maintainers
 
 - [molekilla](https://github.com/molekilla)
+
+## References
+
+- [File System standard specification](https://fs.spec.whatwg.org/)
+- [browser-fs-access](https://github.com/GoogleChromeLabs/browser-fs-access)
+- [native-file-system-adapter](https://github.com/jimmywarting/native-file-system-adapter/)
+- [BrowserFS](https://github.com/jvilk/browserfs)
 
 ## License
 
