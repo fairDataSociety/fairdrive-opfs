@@ -1,5 +1,6 @@
 # OPFS - fairdrive-connector
-Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0
+Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 using Origin Private File System. 
+
 
 **Warning: This project is in alpha state. There might (and most probably will) be changes in the future to its API and working. Also, no guarantees can be made about its stability, efficiency, and security at this stage.**
 
