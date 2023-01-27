@@ -1,7 +1,7 @@
 {
-  "name": "@fairdatasociety/fairdrive-connector",
+  "name": "@fairdatasociety/fairdrive-opfs",
   "version": "0.1.2",
-  "description": "Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 ",
+  "description": "Fairdrive OPFS - integrate data sources from Web 2.0 or Web 3.0 ",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
