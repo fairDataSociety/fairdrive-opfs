@@ -12,7 +12,7 @@ import Grid from '@mui/material/Unstable_Grid2'
 import Box from '@mui/material/Box'
 
 import ButtonGroup from '@mui/material/ButtonGroup'
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import StorageIcon from '@mui/icons-material/Storage'
 import Button from '@mui/material/Button'
@@ -45,7 +45,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [selectedFileHandle, setSelectedFileHandle] = React.useState(null)
   const [connector, setConnector] = React.useState(null)
   const [currentFolderHandle, setCurrentFolderHandle] = React.useState(null)
-  const [selectedItem, setSelectedItem] = React.useState(null)
+  const [isSelected, setIsSelected] = React.useState(false)
 
   function openModal() {
     setIsOpen(true)
@@ -115,6 +115,7 @@ export const DemoFSBrowser = ({ id, name }) => {
     setItems(files)
     setLoading(false)
     setLoadingMessage('')
+    setIsSelected(false)
   }
   const popupState = usePopupState({ variant: 'popover', popupId: 'demoMenu' })
 
@@ -125,6 +126,16 @@ export const DemoFSBrowser = ({ id, name }) => {
     setCurrentPath(`${currentPath}${folderName}/`)
     setLoadingMessage('')
     setLoading(false)
+  }
+
+  async function handleFileDownload() {
+    const h = selectedFileHandle.handle
+    const blob = h.getFile()
+    // Save a file.
+    fileSave(blob, {
+      fileName: h.name,
+      // extensions: ['.png'],
+    })
   }
 
   async function handleFileUpload() {
@@ -172,7 +183,7 @@ export const DemoFSBrowser = ({ id, name }) => {
           setLoading(true)
           setLoadingMessage('Removing file...')
 
-          const file = selectedFileHandle.selectedFilesForAction[0].handle
+          const file = selectedFileHandle.handle
 
           await currentFolderHandle.removeEntry(file.name)
 
@@ -193,19 +204,12 @@ export const DemoFSBrowser = ({ id, name }) => {
           setLoading(false)
           setLoadingMessage('')
         }
+        // eslint-disable-next-line no-console
+        console.log(data)
 
-        setSelectedFileHandle(data.state)
-        if (data.id === ChonkyActions.UploadFiles.id) {
-          //          upload()
-        } else if (data.id === ChonkyActions.DownloadFiles.id) {
-          const h = selectedFileHandle.selectedFilesForAction[0].handle
-          const blob = h.getFile()
-          // Save a file.
-          fileSave(blob, {
-            fileName: h.name,
-            // extensions: ['.png'],
-          })
-        } else if (data.id === ChonkyActions.DeleteFiles.id) {
+        setSelectedFileHandle(data.payload.file)
+        setIsSelected(true)
+        if (data.id === ChonkyActions.DeleteFiles.id) {
           deleteFile()
         } else if (data.id === ChonkyActions.CreateFolder.id) {
           openModal()
@@ -235,7 +239,11 @@ export const DemoFSBrowser = ({ id, name }) => {
                 Upload
               </Button>
               <Button startIcon={<CreateNewFolderIcon />}></Button>
-              <Button>Three</Button>
+              <Button
+                onClick={handleFileDownload}
+                disabled={!isSelected}
+                startIcon={<FileDownloadIcon />}
+              ></Button>
             </ButtonGroup>{' '}
           </div>
         </Grid>
