@@ -40,16 +40,12 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [loading, setLoading] = React.useState(false)
   const [podItem, setPod] = React.useState({ name: '' })
   const [folderChain, setFolderChain] = React.useState([])
-  const myFileActions = [
-    ChonkyActions.UploadFiles,
-    ChonkyActions.CreateFolder,
-    ChonkyActions.DeleteFiles,
-    ChonkyActions.DownloadFiles,
-  ]
+  const myFileActions = [ChonkyActions.DeleteFiles, ChonkyActions.DownloadFiles]
   const [modalIsOpen, setIsOpen] = React.useState(false)
   const [selectedFileHandle, setSelectedFileHandle] = React.useState(null)
   const [connector, setConnector] = React.useState(null)
   const [currentFolderHandle, setCurrentFolderHandle] = React.useState(null)
+  const [selectedItem, setSelectedItem] = React.useState(null)
 
   function openModal() {
     setIsOpen(true)
@@ -131,47 +127,47 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoading(false)
   }
 
+  async function handleFileUpload() {
+    setLoading(true)
+    setLoadingMessage('Uploading file...')
+
+    // request user to select a file
+    const [picker] = await showOpenFilePicker({
+      types: [], // default
+      multiple: false, // default
+      excludeAcceptAllOption: false, // default
+      _preferPolyfill: false, // default
+    })
+
+    // returns a File Instance
+    const file = await picker.getFile()
+
+    const fileHandle = await currentFolderHandle.getFileHandle(file.name, { create: true })
+    const writable = await fileHandle.createWritable({ keepExistingData: false })
+    await writable.write(file)
+    await writable.close()
+
+    const files = []
+
+    for await (let [name, entry] of currentFolderHandle.entries()) {
+      if (entry.kind === 'directory') {
+        const item = { id: name, name: name, isDir: true, handle: entry }
+        files.push(item)
+      } else {
+        const item = { id: name, name: name, isDir: false, handle: entry }
+        files.push(item)
+      }
+    }
+
+    setItems(files)
+
+    setLoading(false)
+    setLoadingMessage('')
+  }
+
   const handleAction = podItem =>
     useCallback(
       data => {
-        async function upload() {
-          setLoading(true)
-          setLoadingMessage('Uploading file...')
-
-          // request user to select a file
-          const [picker] = await showOpenFilePicker({
-            types: [], // default
-            multiple: false, // default
-            excludeAcceptAllOption: false, // default
-            _preferPolyfill: false, // default
-          })
-
-          // returns a File Instance
-          const file = await picker.getFile()
-
-          const fileHandle = await currentFolderHandle.getFileHandle(file.name, { create: true })
-          const writable = await fileHandle.createWritable({ keepExistingData: false })
-          await writable.write(file)
-          await writable.close()
-
-          const files = []
-
-          for await (let [name, entry] of currentFolderHandle.entries()) {
-            if (entry.kind === 'directory') {
-              const item = { id: name, name: name, isDir: true, handle: entry }
-              files.push(item)
-            } else {
-              const item = { id: name, name: name, isDir: false, handle: entry }
-              files.push(item)
-            }
-          }
-
-          setItems(files)
-
-          setLoading(false)
-          setLoadingMessage('')
-        }
-
         async function deleteFile() {
           setLoading(true)
           setLoadingMessage('Removing file...')
@@ -200,7 +196,7 @@ export const DemoFSBrowser = ({ id, name }) => {
 
         setSelectedFileHandle(data.state)
         if (data.id === ChonkyActions.UploadFiles.id) {
-          upload()
+          //          upload()
         } else if (data.id === ChonkyActions.DownloadFiles.id) {
           const h = selectedFileHandle.selectedFilesForAction[0].handle
           const blob = h.getFile()
@@ -235,7 +231,9 @@ export const DemoFSBrowser = ({ id, name }) => {
                 ))}
               </Menu>
               <div></div>
-              <Button startIcon={<FileUploadIcon />}>Upload</Button>
+              <Button onClick={handleFileUpload} startIcon={<FileUploadIcon />}>
+                Upload
+              </Button>
               <Button startIcon={<CreateNewFolderIcon />}></Button>
               <Button>Three</Button>
             </ButtonGroup>{' '}
