@@ -10,7 +10,7 @@ import { FullFileBrowser } from 'chonky'
 import MenuItem from '@mui/material/MenuItem'
 import Grid from '@mui/material/Unstable_Grid2'
 import Box from '@mui/material/Box'
-
+import DeleteIcon from '@mui/icons-material/Delete'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
@@ -176,44 +176,37 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoadingMessage('')
   }
 
+  async function handleDeleteFile() {
+    setLoading(true)
+    setLoadingMessage('Removing file...')
+
+    const file = selectedFileHandle.handle
+
+    await currentFolderHandle.removeEntry(file.name)
+
+    const files = []
+
+    setItems([])
+    for await (let [name, entry] of currentFolderHandle.entries()) {
+      if (entry.kind === 'directory') {
+        const item = { id: name, name: name, isDir: true, handle: entry }
+        files.push(item)
+      } else {
+        const item = { id: name, name: name, isDir: false, handle: entry }
+        files.push(item)
+      }
+    }
+
+    setItems(files)
+    setLoading(false)
+    setLoadingMessage('')
+  }
+
   const handleAction = podItem =>
     useCallback(
       data => {
-        async function deleteFile() {
-          setLoading(true)
-          setLoadingMessage('Removing file...')
-
-          const file = selectedFileHandle.handle
-
-          await currentFolderHandle.removeEntry(file.name)
-
-          const files = []
-
-          setItems([])
-          for await (let [name, entry] of currentFolderHandle.entries()) {
-            if (entry.kind === 'directory') {
-              const item = { id: name, name: name, isDir: true, handle: entry }
-              files.push(item)
-            } else {
-              const item = { id: name, name: name, isDir: false, handle: entry }
-              files.push(item)
-            }
-          }
-
-          setItems(files)
-          setLoading(false)
-          setLoadingMessage('')
-        }
-        // eslint-disable-next-line no-console
-        console.log(data)
-
         setSelectedFileHandle(data.payload.file)
         setIsSelected(true)
-        if (data.id === ChonkyActions.DeleteFiles.id) {
-          deleteFile()
-        } else if (data.id === ChonkyActions.CreateFolder.id) {
-          openModal()
-        }
       },
       [podItem, loading, selectedFileHandle],
     )
@@ -244,6 +237,7 @@ export const DemoFSBrowser = ({ id, name }) => {
                 disabled={!isSelected}
                 startIcon={<FileDownloadIcon />}
               ></Button>
+              <Button onClick={handleDeleteFile} disabled={!isSelected} startIcon={<DeleteIcon />}></Button>
             </ButtonGroup>{' '}
           </div>
         </Grid>
