@@ -1,11 +1,13 @@
 import * as React from 'react'
 import { showOpenFilePicker } from 'native-file-system-adapter'
 import { useEffect } from 'react'
-import { ChonkyActions } from 'chonky'
 import { useCallback } from 'react'
 import { fileSave } from 'browser-fs-access'
 import { FdpConnectModule, IPFSMfsProvider } from '@fairdatasociety/fairdrive-opfs'
 import { FullFileBrowser } from 'chonky'
+import LinearProgress from '@mui/material/LinearProgress'
+import Snackbar from '@mui/material/Snackbar'
+import MuiAlert from '@mui/material/Alert'
 
 import MenuItem from '@mui/material/MenuItem'
 import Grid from '@mui/material/Unstable_Grid2'
@@ -15,6 +17,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import StorageIcon from '@mui/icons-material/Storage'
+import SettingsIcon from '@mui/icons-material/Settings'
 import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
@@ -31,6 +34,10 @@ const module = new FdpConnectModule({
   },
 })
 
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
+})
+
 export const DemoFSBrowser = ({ id, name }) => {
   const [currentPath, setCurrentPath] = React.useState('/')
   const [items, setItems] = React.useState([])
@@ -40,22 +47,23 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [loading, setLoading] = React.useState(false)
   const [podItem, setPod] = React.useState({ name: '' })
   const [folderChain, setFolderChain] = React.useState([])
-  const myFileActions = [ChonkyActions.DeleteFiles, ChonkyActions.DownloadFiles]
-  const [modalIsOpen, setIsOpen] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
   const [selectedFileHandle, setSelectedFileHandle] = React.useState(null)
   const [connector, setConnector] = React.useState(null)
   const [currentFolderHandle, setCurrentFolderHandle] = React.useState(null)
   const [isSelected, setIsSelected] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
 
-  function openModal() {
-    setIsOpen(true)
+  const handleClick = () => {
+    setOpen(true)
   }
 
-  // eslint-disable-next-line
-  function afterOpenModal() {}
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
 
-  function closeModal() {
-    setIsOpen(false)
+    setOpen(false)
   }
 
   useEffect(() => {
@@ -73,7 +81,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   }, [])
 
   async function handlePodChange(e) {
-    setLoadingMessage(`Loading pod ${e.target.value}...`)
+    setLoadingMessage(`Loading mount ${e.target.value}...`)
     setLoading(true)
 
     const rootHandle = await connector.getFSHandler({
@@ -82,6 +90,7 @@ export const DemoFSBrowser = ({ id, name }) => {
     })
 
     setCurrentFolderHandle(rootHandle)
+    setIsMounted(true)
     if (currentPath === '/') {
       setFolderChain([
         {
@@ -217,6 +226,9 @@ export const DemoFSBrowser = ({ id, name }) => {
         <Grid xs={6}>
           <div>
             <ButtonGroup variant="contained" aria-label="outlined primary button group">
+              <Button startIcon={<SettingsIcon />} variant="contained" {...bindTrigger(popupState)}>
+                Settings
+              </Button>
               <Button startIcon={<StorageIcon />} variant="contained" {...bindTrigger(popupState)}>
                 Mounts
               </Button>
@@ -228,29 +240,34 @@ export const DemoFSBrowser = ({ id, name }) => {
                 ))}
               </Menu>
               <div></div>
-              <Button onClick={handleFileUpload} startIcon={<FileUploadIcon />}>
-                Upload
-              </Button>
-              <Button startIcon={<CreateNewFolderIcon />}></Button>
+              <Button
+                disabled={!isMounted}
+                onClick={handleFileUpload}
+                startIcon={<FileUploadIcon />}
+              ></Button>
+              <Button disabled={!isMounted} startIcon={<CreateNewFolderIcon />}></Button>
               <Button
                 onClick={handleFileDownload}
                 disabled={!isSelected}
                 startIcon={<FileDownloadIcon />}
               ></Button>
               <Button onClick={handleDeleteFile} disabled={!isSelected} startIcon={<DeleteIcon />}></Button>
-            </ButtonGroup>{' '}
+            </ButtonGroup>
           </div>
         </Grid>
         <Grid xs={6}></Grid>
         <Grid xs={6}>
-          <FullFileBrowser
-            onFileAction={handleAction(podItem)}
-            files={items}
-            folderChain={folderChain}
-            fileActions={myFileActions}
-          />
+          <FullFileBrowser onFileAction={handleAction(podItem)} files={items} folderChain={folderChain} />
         </Grid>
         <Grid xs={6}>D</Grid>
+        <Grid xs={12}>
+          <Snackbar open={loading} autoHideDuration={6000}>
+            <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+              {loadingMessage}
+            </Alert>
+          </Snackbar>
+          {loading && <LinearProgress />}
+        </Grid>
       </Grid>
     </Box>
   )
