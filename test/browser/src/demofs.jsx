@@ -9,7 +9,6 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Snackbar from '@mui/material/Snackbar'
 import MuiAlert from '@mui/material/Alert'
 
-import MenuItem from '@mui/material/MenuItem'
 import Grid from '@mui/material/Unstable_Grid2'
 import Box from '@mui/material/Box'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -19,20 +18,21 @@ import FileUploadIcon from '@mui/icons-material/FileUpload'
 import StorageIcon from '@mui/icons-material/Storage'
 import SettingsIcon from '@mui/icons-material/Settings'
 import Button from '@mui/material/Button'
-import Menu from '@mui/material/Menu'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
-import { usePopupState, bindTrigger, bindMenu } from 'material-ui-popup-state/hooks'
-
-const module = new FdpConnectModule({
-  providers: {
-    ipfs: {
-      options: {
-        host: 'http://localhost:5001',
-      },
-      provider: '@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs',
-    },
-  },
-})
+import { usePopupState } from 'material-ui-popup-state/hooks'
+import * as providers from './providers'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import InboxIcon from '@mui/icons-material/Inbox'
+import DraftsIcon from '@mui/icons-material/Drafts'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
@@ -43,7 +43,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [items, setItems] = React.useState([])
   const [pods, setPods] = React.useState([])
   const [folderName, setFolderName] = React.useState('')
-  const [loadingMessage, setLoadingMessage] = React.useState('Loading pod...')
+  const [loadingMessage, setLoadingMessage] = React.useState('Loading...')
   const [loading, setLoading] = React.useState(false)
   const [podItem, setPod] = React.useState({ name: '' })
   const [folderChain, setFolderChain] = React.useState([])
@@ -53,9 +53,25 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [currentFolderHandle, setCurrentFolderHandle] = React.useState(null)
   const [isSelected, setIsSelected] = React.useState(false)
   const [open, setOpen] = React.useState(false)
+  const [openSettings, setOpenSettings] = React.useState(false)
+  const [providerSettings, setProviderSettings] = React.useState(providers)
+  const [showError, setShowError] = React.useState(false)
+  const [openMount, setOpenMount] = React.useState(false)
 
-  const handleClick = () => {
-    setOpen(true)
+  const handleOpenSettings = () => {
+    setOpenSettings(true)
+  }
+
+  const handleCloseSettings = () => {
+    setOpenSettings(false)
+  }
+
+  const handleOpenMount = () => {
+    setOpenMount(true)
+  }
+
+  const handleCloseMount = () => {
+    setOpenMount(false)
   }
 
   const handleClose = (event, reason) => {
@@ -66,18 +82,36 @@ export const DemoFSBrowser = ({ id, name }) => {
     setOpen(false)
   }
 
+  const getProviderType = provider => {
+    if (provider === 'ipfs') {
+      return IPFSMfsProvider
+    }
+    if (provider === 'fairos') {
+      return FairosProvider
+    }
+  }
+
   useEffect(() => {
     async function getPods() {
-      setLoading(true)
-      const conn = await module.connect('ipfs', IPFSMfsProvider)
+      const module = new FdpConnectModule(providerSettings)
+      const conn = await module.connect(
+        providerSettings.selectedProvider,
+        getProviderType(providerSettings.selectedProvider),
+      )
 
       setConnector(conn)
       const podList = [{ name: 'root', path: '/' }]
       setPods(podList)
+    }
+    try {
+      setLoading(true)
+      getPods()
+    } catch (e) {
+      setShowError(true)
+      setLoadingMessage(e.message)
+    } finally {
       setLoading(false)
     }
-
-    getPods()
   }, [])
 
   async function handlePodChange(e) {
@@ -226,19 +260,12 @@ export const DemoFSBrowser = ({ id, name }) => {
         <Grid xs={6}>
           <div>
             <ButtonGroup variant="contained" aria-label="outlined primary button group">
-              <Button startIcon={<SettingsIcon />} variant="contained" {...bindTrigger(popupState)}>
+              <Button startIcon={<SettingsIcon />} variant="contained" onClick={handleOpenSettings}>
                 Settings
               </Button>
-              <Button startIcon={<StorageIcon />} variant="contained" {...bindTrigger(popupState)}>
+              <Button startIcon={<StorageIcon />} variant="contained" onClick={handleOpenMount}>
                 Mounts
               </Button>
-              <Menu {...bindMenu(popupState)}>
-                {pods.map(pod => (
-                  <MenuItem value={pod.name} key={pod.name} onClick={handlePodChange}>
-                    {pod.name}
-                  </MenuItem>
-                ))}
-              </Menu>
               <div></div>
               <Button
                 disabled={!isMounted}
@@ -266,9 +293,61 @@ export const DemoFSBrowser = ({ id, name }) => {
               {loadingMessage}
             </Alert>
           </Snackbar>
+          <Snackbar open={showError} autoHideDuration={6000}>
+            <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+              {loadingMessage}
+            </Alert>
+          </Snackbar>
           {loading && <LinearProgress />}
         </Grid>
       </Grid>
+      <Dialog open={openSettings} onClose={handleCloseSettings}>
+        <DialogTitle>Providers settings</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Select and configure your providers. You can add multiple providers and switch between them.
+          </DialogContentText>
+        </DialogContent>
+        <nav aria-label="main mailbox folders">
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Fairos" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="IPFS" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </nav>
+        <DialogActions>
+          <Button onClick={handleCloseSettings}>Close</Button>
+          <Button onClick={handleClose}>Apply</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openMount} onClose={handleCloseMount}>
+        <DialogTitle>Mounts</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Select a mount to connect to </DialogContentText>
+        </DialogContent>
+        <nav aria-label="main mailbox folders">
+          <List>
+            <ListItem disablePadding>
+              {pods.map(pod => (
+                <ListItemButton>
+                  <ListItemText primary={pod.name} onClick={handlePodChange} />
+                </ListItemButton>
+              ))}
+            </ListItem>
+          </List>
+        </nav>
+        <DialogActions>
+          <Button onClick={handleCloseMount}>Close</Button>
+          <Button onClick={handleClose}>Apply</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

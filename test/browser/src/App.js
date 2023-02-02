@@ -1,11 +1,11 @@
 import React from 'react'
 import './App.css'
-import { DemoFSBrowser } from './demofs'
+import { FairdriveBrowser } from './fairdrive'
 
 const App = () => {
   return (
     <div className="App" style={{ display: 'flex' }}>
-      <DemoFSBrowser name={'DemoFS'} id="DemoFS" />
+      <FairdriveBrowser name={'DemoFS'} id="DemoFS" />
     </div>
   )
 }

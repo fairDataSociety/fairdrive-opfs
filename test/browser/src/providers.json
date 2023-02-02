@@ -1,0 +1,16 @@
+{
+  "providers": {
+    "ipfs": {
+      "options": {
+        "host": "http://localhost:5001"
+      },
+      "provider": "@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs"
+    }
+  },
+  "fairos": {
+    "options": {
+      "host": "https://fairos.staging.fairdatasociety.org/"
+    },
+    "provider": "@fairdatasociety/fairdrive-connector/providers/fairos"
+  }
+}

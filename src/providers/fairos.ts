@@ -82,8 +82,8 @@ export class FairosProviderDriver implements ProviderDriver {
       const data = await res.json()
 
       return {
-        dirs: data.dirs,
-        files: data.files,
+        dirs: (data.dirs || []).map((dir: any) => dir.name),
+        files: (data.files || []).map((file: any) => file.name),
         mount,
       }
     } else {
@@ -205,7 +205,7 @@ export class FairosProvider extends FdpConnectProvider {
   }
 
   async listMounts(): Promise<Mount[]> {
-    const res = await fetch(`${this.host}v1/pod/ls`, {
+    const res = await fetch(`${this.host}v1/pod/ls?podName=`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

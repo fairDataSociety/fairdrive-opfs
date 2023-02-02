@@ -7,15 +7,15 @@ import { ChonkyActions } from 'chonky'
 import { useCallback } from 'react'
 import Modal from 'react-modal'
 import { fileSave } from 'browser-fs-access'
-import { FdpConnectModule, FairosProvider } from '@fairdatasociety/fairdrive-connector'
+import { FdpConnectModule, FairosProvider } from '@fairdatasociety/fairdrive-opfs'
 
 const module = new FdpConnectModule({
   providers: {
     fairos: {
       options: {
-        host: 'https://fairos.staging.fairdatasociety.org/',
+        host: 'https://fairos.fairdatasociety.org/',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/fairos',
+      provider: '@fairdatasociety/fairdrive-opfs/providers/fairos',
     },
   },
 })
@@ -87,6 +87,10 @@ export const FairdriveBrowser = ({ id, name }) => {
     setLoadingMessage(`Loading pod ${e.target.value}...`)
     setLoading(true)
 
+    await connector.podOpen({
+      name: e.target.value,
+      path: '/',
+    })
     const rootHandle = await connector.getFSHandler({
       name: e.target.value,
       path: '/',
