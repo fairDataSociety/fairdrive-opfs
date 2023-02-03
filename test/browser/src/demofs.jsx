@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { showOpenFilePicker } from 'native-file-system-adapter'
-import { useEffect } from 'react'
 import { useCallback } from 'react'
 import { fileSave } from 'browser-fs-access'
 import { FdpConnectModule } from '@fairdatasociety/fairdrive-opfs'
@@ -27,7 +26,6 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import Button from '@mui/material/Button'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
 import { usePopupState } from 'material-ui-popup-state/hooks'
-import * as providers from './providers'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -37,10 +35,31 @@ import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
+import { AccordionActions } from '@mui/material'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
 })
+
+const providers = {
+  selectedProvider: 'ipfs',
+  providers: {
+    ipfs: {
+      options: {
+        host: 'http://localhost:5001',
+      },
+      driver: '@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs',
+    },
+    fairos: {
+      options: {
+        username: '',
+        password: '',
+        host: 'https://fairos.fairdatasociety.org/',
+      },
+      driver: '@fairdatasociety/fairdrive-opfs/providers/fairos',
+    },
+  },
+}
 
 export const DemoFSBrowser = ({ id, name }) => {
   const [currentPath, setCurrentPath] = React.useState('/')
@@ -58,6 +77,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [isSelected, setIsSelected] = React.useState(false)
   const [open, setOpen] = React.useState(false)
   const [openSettings, setOpenSettings] = React.useState(false)
+
   const [providerSettings, setProviderSettings] = React.useState(providers)
   const [showError, setShowError] = React.useState(false)
   const [openMount, setOpenMount] = React.useState(false)
@@ -86,25 +106,22 @@ export const DemoFSBrowser = ({ id, name }) => {
     setOpen(false)
   }
 
-  useEffect(() => {
-    async function getPods() {
+  async function handleApplyProvider() {
+    try {
+      setLoading(true)
       const module = new FdpConnectModule(providerSettings)
       const conn = await module.connect(providerSettings.selectedProvider)
 
       setConnector(conn)
-      const podList = [{ name: 'root', path: '/' }]
+      const podList = await conn.listMounts()
       setPods(podList)
-    }
-    try {
-      setLoading(true)
-      getPods()
     } catch (e) {
       setShowError(true)
       setLoadingMessage(e.message)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   async function handlePodChange(e) {
     setLoadingMessage(`Loading mount ${e.target.value}...`)
@@ -312,19 +329,32 @@ export const DemoFSBrowser = ({ id, name }) => {
             <div>
               <TextField
                 required
+                onChange={e => {
+                  providerSettings.providers.fairos.options.host = e.target.value
+                }}
                 id="standard-required"
-                label="Fairos Url"
-                defaultValue="Hello World"
+                label="Fairos RPC"
+                defaultValue={providerSettings.providers.fairos.options.host}
                 variant="standard"
               />
+            </div>
+            <div>
               <TextField
                 required
+                onChange={e => {
+                  providerSettings.providers.fairos.options.username = e.target.value
+                }}
                 id="standard-required"
                 label="Username"
-                defaultValue="Hello World"
+                defaultValue={providerSettings.providers.fairos.options.username}
                 variant="standard"
               />
+            </div>
+            <div>
               <TextField
+                onChange={e => {
+                  providerSettings.providers.fairos.options.password = e.target.value
+                }}
                 id="standard-password-input"
                 label="Password"
                 type="password"
@@ -333,6 +363,17 @@ export const DemoFSBrowser = ({ id, name }) => {
               />
             </div>
           </AccordionDetails>
+          <AccordionActions>
+            <Button
+              onChange={e => {
+                providerSettings.selectedProvider = 'fairos'
+                setProviderSettings(providerSettings)
+              }}
+              size="small"
+            >
+              Set as default
+            </Button>
+          </AccordionActions>
         </Accordion>
         <Accordion>
           <AccordionSummary
@@ -345,28 +386,34 @@ export const DemoFSBrowser = ({ id, name }) => {
           <AccordionDetails>
             <div>
               <TextField
+                onChange={e => {
+                  providerSettings.providers.ipfs.options.host = e.target.value
+                  setProviderSettings(providerSettings)
+                }}
                 required
                 id="standard-required"
-                label="IPFS Url"
-                defaultValue="Hello World"
+                label="IPFS RPC"
+                defaultValue={providerSettings.providers.ipfs.options.host}
                 variant="standard"
               />
             </div>
           </AccordionDetails>
-        </Accordion>
-        <Accordion disabled>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel3a-content"
-            id="panel3a-header"
-          >
-            <Typography>Disabled Accordion</Typography>
-          </AccordionSummary>
+          <AccordionActions>
+            <Button
+              onChange={e => {
+                providerSettings.selectedProvider = 'ipfs'
+                setProviderSettings(providerSettings)
+              }}
+              size="small"
+            >
+              Set as default
+            </Button>
+          </AccordionActions>
         </Accordion>
 
         <DialogActions>
           <Button onClick={handleCloseSettings}>Close</Button>
-          <Button onClick={handleClose}>Apply</Button>
+          <Button onClick={handleApplyProvider}>Apply</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={openMount} onClose={handleCloseMount}>
@@ -374,7 +421,7 @@ export const DemoFSBrowser = ({ id, name }) => {
         <DialogContent>
           <DialogContentText>Select a mount to connect to </DialogContentText>
         </DialogContent>
-        <nav aria-label="main mailbox folders">
+        <nav>
           <List>
             <ListItem disablePadding>
               {pods.map(pod => (

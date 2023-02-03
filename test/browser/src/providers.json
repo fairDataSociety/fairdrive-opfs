@@ -4,13 +4,15 @@
       "options": {
         "host": "http://localhost:5001"
       },
-      "provider": "@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs"
+      "driver": "@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs"
     }
   },
   "fairos": {
     "options": {
+      "username": "",
+      "password": "",
       "host": "https://fairos.fairdatasociety.org/"
     },
-    "provider": "@fairdatasociety/fairdrive-opfs/providers/fairos"
+    "driver": "@fairdatasociety/fairdrive-opfs/providers/fairos"
   }
 }

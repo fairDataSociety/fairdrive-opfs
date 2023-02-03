@@ -112,4 +112,8 @@ export default class IPFSMfsProvider extends FdpConnectProvider {
 
     this.filesystemDriver = new IpfsMfsProviderDriver(options)
   }
+
+  async listMounts(): Promise<Mount[]> {
+    return [{ name: 'root', path: '/' }]
+  }
 }
