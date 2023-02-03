@@ -100,7 +100,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 /**
  * IPFSMfsProvider is the provider for IPFS MFS.
  */
-export class IPFSMfsProvider extends FdpConnectProvider {
+export default class IPFSMfsProvider extends FdpConnectProvider {
   constructor(private host: string = 'http://localhost:5001/api/v0/') {
     super({
       name: 'IPFSMfsProvider',

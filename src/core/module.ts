@@ -1,4 +1,4 @@
-import { FdpConnectModuleConfig } from './module-config'
+import { ModuleConfig } from './module-config'
 import { FdpConnectProvider } from './provider'
 
 /**
@@ -7,16 +7,16 @@ import { FdpConnectProvider } from './provider'
 export class FdpConnectModule {
   // connected providers
   bindings: Map<string, FdpConnectProvider> = new Map()
-  constructor(public config: FdpConnectModuleConfig) {}
+  constructor(public config: ModuleConfig) {}
 
   /**
    * Connects a provider to the module.
    * @param providerName Provider name
-   * @param provider FdpConnectProvider type
    * @returns A provider instance
    */
-  connect<T extends FdpConnectProvider>(providerName: string, provider: { new (): T }) {
-    const providerInstance = new provider()
+  async connect(providerName: string) {
+    const provider = await import(this.config.providers[providerName].driver)
+    const providerInstance = new provider.default()
     providerInstance.initialize(this.config.providers[providerName].options)
 
     this.bindings.set(providerName, providerInstance)

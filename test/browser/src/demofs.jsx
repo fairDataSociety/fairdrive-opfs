@@ -29,10 +29,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import InboxIcon from '@mui/icons-material/Inbox'
-import DraftsIcon from '@mui/icons-material/Drafts'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />

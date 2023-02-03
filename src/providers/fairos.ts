@@ -150,7 +150,7 @@ export class FairosProviderDriver implements ProviderDriver {
 /**
  * FairosProvider is the provider for the FairOS provider.
  */
-export class FairosProvider extends FdpConnectProvider {
+export default class FairosProvider extends FdpConnectProvider {
   constructor(private host: string = 'https://fairos.dev.fairdatasociety.org/') {
     super({
       name: 'FairosProvider',

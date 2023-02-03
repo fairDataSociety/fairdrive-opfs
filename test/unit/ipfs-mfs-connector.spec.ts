@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config()
 import { faker } from '@faker-js/faker'
 import { FdpConnectModule } from '../../src/core/module'
-import { IPFSMfsProvider } from '../../src/providers'
 import fetchMock from 'jest-fetch-mock'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 import { Blob } from 'fetch-blob'
@@ -24,31 +23,30 @@ describe('ipfs mfs driver', () => {
 
     // Create a FairdriveConnectorModule
     module = new FdpConnectModule({
-      scopes: ['files:read', 'directory:read'],
       providers: {
         fairos: {
           options: {
             host: 'https://fairos.staging.fairdatasociety.org/',
           },
-          provider: '../../src/providers/fairos',
+          driver: '../../src/providers/fairos',
         },
         ipfsmfs: {
           options: {
             host: 'http://localhost:5001/api/v0/',
           },
-          provider: '../../src/providers/ipfs-mfs',
+          driver: '../../src/providers/ipfs-mfs',
         },
       },
     })
   })
   it('should instantiate module with one provider', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
   })
 
   xit('should list directories', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 
@@ -85,7 +83,7 @@ describe('ipfs mfs driver', () => {
   })
 
   xit('should list files', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 
@@ -110,7 +108,7 @@ describe('ipfs mfs driver', () => {
     expect(end.done).toBe(true)
   })
   it('should upload file', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 
@@ -124,7 +122,7 @@ describe('ipfs mfs driver', () => {
     await driver.filesystemDriver.upload(new File([], faker.system.fileName()), DefaultMount, {})
   })
   xit('should download file', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 
@@ -139,7 +137,7 @@ describe('ipfs mfs driver', () => {
     expect(resp).toBe(true)
   })
   it('should create dir', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 
@@ -161,7 +159,7 @@ describe('ipfs mfs driver', () => {
     expect(resp).toBe(true)
   })
   xit('should validate if file exists', async () => {
-    const ipfs = await module.connect<IPFSMfsProvider>('ipfsmfs', IPFSMfsProvider)
+    const ipfs = await module.connect('ipfsmfs')
 
     expect(ipfs).toBeDefined()
 

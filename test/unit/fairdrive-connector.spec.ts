@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 dotenv.config()
 import { faker } from '@faker-js/faker'
 import { FdpConnectModule } from '../../src/core/module'
-import { FairosProvider } from '../../src/providers/fairos'
 import fetchMock from 'jest-fetch-mock'
 import { FormData } from 'formdata-polyfill/esm.min.js'
 import { Blob } from 'fetch-blob'
@@ -25,25 +24,24 @@ describe('fairdrive connector module', () => {
 
     // Create a FairdriveConnectorModule
     module = new FdpConnectModule({
-      scopes: ['files:read', 'directory:read'],
       providers: {
         fairos: {
           options: {
             host: 'https://fairos.staging.fairdatasociety.org/',
           },
-          provider: '../../src/providers/fairos',
+          driver: '../../src/providers/fairos',
         },
       },
     })
   })
   it('should instantiate module with one provider', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
+    const fairosConnector = await module.connect('fairos')
 
     expect(fairosConnector).toBeDefined()
   })
 
   it('should list mounts', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
+    const fairosConnector = await module.connect('fairos')
 
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
@@ -73,8 +71,7 @@ describe('fairdrive connector module', () => {
   })
 
   it('should list directories', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -126,8 +123,7 @@ describe('fairdrive connector module', () => {
   })
 
   it('should list files', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -174,13 +170,12 @@ describe('fairdrive connector module', () => {
     const fs = await fairosConnector.getFSHandler(mounts[0])
     const entries = await fs.entries()
     const entry = await entries.next()
-    expect(entry.value[0].tag).toBe(0)
+    expect(entry.value[0].tag).toBe(undefined)
     const end = await entries.next()
     expect(end.done).toBe(true)
   })
   it('should upload file', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -227,8 +222,7 @@ describe('fairdrive connector module', () => {
     await driver.filesystemDriver.upload(new File([], faker.system.fileName()), mounts[0], {})
   })
   it('should download file', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -260,8 +254,7 @@ describe('fairdrive connector module', () => {
     await driver.filesystemDriver.download('file', mounts[0], {})
   })
   it('should delete file', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -299,8 +292,7 @@ describe('fairdrive connector module', () => {
     expect(resp).toBe(true)
   })
   it('should create dir', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({
@@ -338,8 +330,7 @@ describe('fairdrive connector module', () => {
     expect(resp).toBe(true)
   })
   it('should validate if file exists', async () => {
-    const fairosConnector = await module.connect<FairosProvider>('fairos', FairosProvider)
-
+    const fairosConnector = await module.connect('fairos')
     expect(fairosConnector).toBeDefined()
     fetchMock.mockResponseOnce(
       JSON.stringify({

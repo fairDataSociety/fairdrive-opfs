@@ -9,8 +9,8 @@
   },
   "fairos": {
     "options": {
-      "host": "https://fairos.staging.fairdatasociety.org/"
+      "host": "https://fairos.fairdatasociety.org/"
     },
-    "provider": "@fairdatasociety/fairdrive-connector/providers/fairos"
+    "provider": "@fairdatasociety/fairdrive-opfs/providers/fairos"
   }
 }
