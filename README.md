@@ -13,11 +13,11 @@ Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0
 
 ## Install
 
-`npm install @fairdatasociety/fairdrive-connector`
+`npm install @fairdatasociety/fairdrive-opfs`
 
 ## Usage
 ```typescript
-import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-connector'
+import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-opfs'
 import { fileSave } from 'browser-fs-access'
 
 // Add providers
@@ -27,13 +27,13 @@ const module = new FdpConnectModule({
       options: {
         host: 'https://fairos.staging.fairdatasociety.org/',
       },
-      driver: '@fairdatasociety/fairdrive-connector/providers/fairos',
+      driver: '@fairdatasociety/fairdrive-opfs/providers/fairos',
     },
     ipfs: {
       options: {
         host: 'http://localhost:5001/api/v0/',
       },
-      driver: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
+      driver: '@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs',
     },    
   },
 })
