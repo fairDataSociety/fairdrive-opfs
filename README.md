@@ -27,19 +27,19 @@ const module = new FdpConnectModule({
       options: {
         host: 'https://fairos.staging.fairdatasociety.org/',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/fairos',
+      driver: '@fairdatasociety/fairdrive-connector/providers/fairos',
     },
     ipfs: {
       options: {
         host: 'http://localhost:5001/api/v0/',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
+      driver: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
     },    
   },
 })
 
 // Connect to Fairos
-const connector = await module.connect('fairos', FairosProvider)
+const connector = await module.connect('fairos')
 
 // Provider calls that manage authentication, authz and mounts are at the top level
 await connector.userLogin(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
