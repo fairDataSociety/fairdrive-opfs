@@ -3,11 +3,18 @@ import { showOpenFilePicker } from 'native-file-system-adapter'
 import { useEffect } from 'react'
 import { useCallback } from 'react'
 import { fileSave } from 'browser-fs-access'
-import { FdpConnectModule, IPFSMfsProvider } from '@fairdatasociety/fairdrive-opfs'
+import { FdpConnectModule } from '@fairdatasociety/fairdrive-opfs'
 import { FullFileBrowser } from 'chonky'
 import LinearProgress from '@mui/material/LinearProgress'
 import Snackbar from '@mui/material/Snackbar'
 import MuiAlert from '@mui/material/Alert'
+
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import TextField from '@mui/material/TextField'
 
 import Grid from '@mui/material/Unstable_Grid2'
 import Box from '@mui/material/Box'
@@ -79,22 +86,10 @@ export const DemoFSBrowser = ({ id, name }) => {
     setOpen(false)
   }
 
-  const getProviderType = provider => {
-    if (provider === 'ipfs') {
-      return IPFSMfsProvider
-    }
-    if (provider === 'fairos') {
-      return FairosProvider
-    }
-  }
-
   useEffect(() => {
     async function getPods() {
       const module = new FdpConnectModule(providerSettings)
-      const conn = await module.connect(
-        providerSettings.selectedProvider,
-        getProviderType(providerSettings.selectedProvider),
-      )
+      const conn = await module.connect(providerSettings.selectedProvider)
 
       setConnector(conn)
       const podList = [{ name: 'root', path: '/' }]
@@ -305,20 +300,70 @@ export const DemoFSBrowser = ({ id, name }) => {
             Select and configure your providers. You can add multiple providers and switch between them.
           </DialogContentText>
         </DialogContent>
-        <nav aria-label="main mailbox folders">
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemText primary="Fairos" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton>
-                <ListItemText primary="IPFS" />
-              </ListItemButton>
-            </ListItem>
-          </List>
-        </nav>
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+            <Typography>Fairos</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div>
+              <TextField
+                required
+                id="standard-required"
+                label="Fairos Url"
+                defaultValue="Hello World"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="standard-required"
+                label="Username"
+                defaultValue="Hello World"
+                variant="standard"
+              />
+              <TextField
+                id="standard-password-input"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                variant="standard"
+              />
+            </div>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel2a-content"
+            id="panel2a-header"
+          >
+            <Typography>IPFS</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div>
+              <TextField
+                required
+                id="standard-required"
+                label="IPFS Url"
+                defaultValue="Hello World"
+                variant="standard"
+              />
+            </div>
+          </AccordionDetails>
+        </Accordion>
+        <Accordion disabled>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel3a-content"
+            id="panel3a-header"
+          >
+            <Typography>Disabled Accordion</Typography>
+          </AccordionSummary>
+        </Accordion>
+
         <DialogActions>
           <Button onClick={handleCloseSettings}>Close</Button>
           <Button onClick={handleClose}>Apply</Button>
