@@ -45,6 +45,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 
       return true
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e)
 
       return false
@@ -100,7 +101,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 /**
  * IPFSMfsProvider is the provider for IPFS MFS.
  */
-export default class IPFSMfsProvider extends FdpConnectProvider {
+export class IPFSMfsProvider extends FdpConnectProvider {
   constructor(private host: string = 'http://localhost:5001/api/v0/') {
     super({
       name: 'IPFSMfsProvider',

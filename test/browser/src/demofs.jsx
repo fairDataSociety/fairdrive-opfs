@@ -48,7 +48,8 @@ const providers = {
       options: {
         host: 'http://localhost:5001',
       },
-      driver: '@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs',
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'IPFSMfsProvider',
     },
     fairos: {
       options: {
@@ -56,7 +57,8 @@ const providers = {
         password: '',
         host: 'https://fairos.fairdatasociety.org/',
       },
-      driver: '@fairdatasociety/fairdrive-opfs/providers/fairos',
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'FairosProvider',
     },
   },
 }
@@ -425,7 +427,7 @@ export const DemoFSBrowser = ({ id, name }) => {
           <List>
             <ListItem disablePadding>
               {pods.map(pod => (
-                <ListItemButton>
+                <ListItemButton key={pod.name}>
                   <ListItemText primary={pod.name} onClick={handlePodChange} />
                 </ListItemButton>
               ))}

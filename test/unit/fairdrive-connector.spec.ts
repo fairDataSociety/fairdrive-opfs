@@ -30,6 +30,7 @@ describe('fairdrive connector module', () => {
             host: 'https://fairos.staging.fairdatasociety.org/',
           },
           driver: '../../src/providers/fairos',
+          type: 'FairosProvider',
         },
       },
     })

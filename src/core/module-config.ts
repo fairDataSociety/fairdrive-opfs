@@ -8,4 +8,5 @@ export class ModuleConfig {
 export class ProviderConfig {
   options: Record<string, string | object> = {}
   driver = ''
+  type = ''
 }

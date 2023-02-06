@@ -15,8 +15,8 @@ export class FdpConnectModule {
    * @returns A provider instance
    */
   async connect(providerName: string) {
-    const provider = await import(this.config.providers[providerName].driver)
-    const providerInstance = new provider.default()
+    const provider = await this.config.providers[providerName].driver
+    const providerInstance = new provider[this.config.providers[providerName].type]()
     providerInstance.initialize(this.config.providers[providerName].options)
 
     this.bindings.set(providerName, providerInstance)

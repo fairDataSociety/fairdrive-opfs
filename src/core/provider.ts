@@ -90,9 +90,8 @@ class Sink implements UnderlyingSink<WriteChunk> {
 
   async close() {
     return new Promise<void>(async (resolve, reject) => {
-      const buffer = await this.file.arrayBuffer()
       try {
-        await this.driver.upload(this.file, this.mount, Buffer.from(buffer))
+        await this.driver.upload(this.file, this.mount, {})
         resolve()
       } catch (e) {
         reject(e)
