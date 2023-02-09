@@ -157,8 +157,19 @@ export class FairosProvider extends FdpConnectProvider {
     })
   }
 
+  /**
+   * Initialize the provider
+   * @param options options
+   */
   initialize(options: any): void {
     super.initialize(options)
+
+    this.onMount.subscribe(async (mount: Mount) => {
+      if (mount.name !== this.getCurrentMount().name) {
+        this.podClose(mount)
+      }
+      this.podOpen(mount)
+    })
 
     this.filesystemDriver = new FairosProviderDriver(options)
   }

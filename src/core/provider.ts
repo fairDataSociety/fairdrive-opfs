@@ -7,6 +7,7 @@ import {
 
 const { INVALID, GONE, SYNTAX } = errors
 import { errors } from 'file-system-access/lib/util.js'
+import { Subject } from 'rxjs'
 import { ProviderDriver } from './provider-driver'
 
 //
@@ -20,11 +21,21 @@ export interface Entries {
  * FdpConnectProvider is the base class for all providers.
  */
 export abstract class FdpConnectProvider {
+  onMount: Subject<Mount> = new Subject()
+  mount: Mount
   constructor(private config: any) {}
 
   filesystemDriver!: ProviderDriver
   initialize(options: any) {
     Object.assign(this, options)
+  }
+
+  /**
+   * Get the current mount point.
+   * @returns Current mount point
+   */
+  getCurrentMount() {
+    return this.mount
   }
 
   /**
@@ -34,6 +45,9 @@ export abstract class FdpConnectProvider {
    */
   async getFSHandler(mount: Mount) {
     const adapter = await import('./adapter') // FdpConnectAdapter(mount, this.filesystemDriver)
+
+    this.mount = mount
+    this.onMount.next(mount)
 
     return getOriginPrivateDirectory(adapter, { mount, driver: this.filesystemDriver })
   }

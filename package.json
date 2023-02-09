@@ -35,7 +35,8 @@
     "file-system-access": "^1.0.4",
     "formdata-polyfill": "^4.0.10",
     "http-cookie-agent": "^5.0.2",
-    "ipfs-http-client": "^60.0.0"
+    "ipfs-http-client": "^60.0.0",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",

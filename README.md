@@ -23,18 +23,22 @@ import { fileSave } from 'browser-fs-access'
 // Add providers
 const module = new FdpConnectModule({
   providers: {
-    fairos: {
-      options: {
-        host: 'https://fairos.staging.fairdatasociety.org/',
-      },
-      driver: '@fairdatasociety/fairdrive-opfs/providers/fairos',
-    },
     ipfs: {
       options: {
-        host: 'http://localhost:5001/api/v0/',
+        host: 'http://localhost:5001',
       },
-      driver: '@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs',
-    },    
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'IPFSMfsProvider',
+    },
+    fairos: {
+      options: {
+        username: '',
+        password: '',
+        host: 'https://fairos.fairdatasociety.org/',
+      },
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'FairosProvider',
+    },
   },
 })
 
@@ -51,8 +55,6 @@ const selectedMount = {
   name: podList[0],
   path: '/'
 }
-
-await connector.podOpen(selectedMount)
 
 // OPFS driver interface is available with getFSHandler
 const currentFolderHandle = await connector.getFSHandler(selectedMount)

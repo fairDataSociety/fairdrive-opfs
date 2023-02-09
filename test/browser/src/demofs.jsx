@@ -20,12 +20,12 @@ import Box from '@mui/material/Box'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import CheckIcon from '@mui/icons-material/Check'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import StorageIcon from '@mui/icons-material/Storage'
 import SettingsIcon from '@mui/icons-material/Settings'
 import Button from '@mui/material/Button'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
-import { usePopupState } from 'material-ui-popup-state/hooks'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -79,10 +79,11 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [isSelected, setIsSelected] = React.useState(false)
   const [open, setOpen] = React.useState(false)
   const [openSettings, setOpenSettings] = React.useState(false)
-
+  const [defaultProvider, setDefaultProvider] = React.useState('')
   const [providerSettings, setProviderSettings] = React.useState(providers)
   const [showError, setShowError] = React.useState(false)
   const [openMount, setOpenMount] = React.useState(false)
+  const [openCreateFolder, setOpenCreateFolder] = React.useState(false)
 
   const handleOpenSettings = () => {
     setOpenSettings(true)
@@ -122,6 +123,7 @@ export const DemoFSBrowser = ({ id, name }) => {
       setLoadingMessage(e.message)
     } finally {
       setLoading(false)
+      handleCloseSettings()
     }
   }
 
@@ -170,12 +172,14 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoading(false)
     setLoadingMessage('')
     setIsSelected(false)
+    handleCloseMount()
   }
-  const popupState = usePopupState({ variant: 'popover', popupId: 'demoMenu' })
 
-  async function createFolder() {
+  async function handleCreateFolder() {
     setLoadingMessage(`Creating folder ${currentPath}${folderName}...`)
     setLoading(true)
+
+    await currentFolderHandle.getDirectoryHandle(folderName, { create: true })
 
     setCurrentPath(`${currentPath}${folderName}/`)
     setLoadingMessage('')
@@ -283,7 +287,13 @@ export const DemoFSBrowser = ({ id, name }) => {
                 onClick={handleFileUpload}
                 startIcon={<FileUploadIcon />}
               ></Button>
-              <Button disabled={!isMounted} startIcon={<CreateNewFolderIcon />}></Button>
+              <Button
+                disabled={!isMounted}
+                onClick={e => {
+                  setOpenCreateFolder(true)
+                }}
+                startIcon={<CreateNewFolderIcon />}
+              ></Button>
               <Button
                 onClick={handleFileDownload}
                 disabled={!isSelected}
@@ -371,6 +381,7 @@ export const DemoFSBrowser = ({ id, name }) => {
                 providerSettings.selectedProvider = 'fairos'
                 setProviderSettings(providerSettings)
               }}
+              startIcon={defaultProvider === 'fairos' ? <CheckIcon /> : <></>}
               size="small"
             >
               Set as default
@@ -406,6 +417,7 @@ export const DemoFSBrowser = ({ id, name }) => {
                 providerSettings.selectedProvider = 'ipfs'
                 setProviderSettings(providerSettings)
               }}
+              startIcon={defaultProvider === 'ipfs' ? <CheckIcon /> : <></>}
               size="small"
             >
               Set as default
@@ -437,6 +449,25 @@ export const DemoFSBrowser = ({ id, name }) => {
         <DialogActions>
           <Button onClick={handleCloseMount}>Close</Button>
           <Button onClick={handleClose}>Apply</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openCreateFolder} onClose={e => setOpenCreateFolder(false)}>
+        <DialogTitle>Create folder</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Set folder name</DialogContentText>
+        </DialogContent>
+        <div>
+          <TextField required label="Name" variant="standard" onChange={e => setFolderName(e.target.value)} />
+        </div>
+        <DialogActions>
+          <Button
+            onClick={e => {
+              setOpenCreateFolder(false)
+            }}
+          >
+            Close
+          </Button>
+          <Button onClick={handleCreateFolder}>Apply</Button>
         </DialogActions>
       </Dialog>
     </Box>
