@@ -31,10 +31,6 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemText from '@mui/material/ListItemText'
 import { AccordionActions } from '@mui/material'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -42,8 +38,15 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 })
 
 const providers = {
-  selectedProvider: 'ipfs',
+  selectedProvider: '',
   providers: {
+    s3: {
+      options: {
+        host: 'http://localhost:4568',
+      },
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'S3Provider',
+    },
     ipfs: {
       options: {
         host: 'http://localhost:5001',
@@ -109,13 +112,19 @@ export const DemoFSBrowser = ({ id, name }) => {
     setOpen(false)
   }
 
-  async function handleApplyProvider() {
+  async function handleApplyProvider(provider) {
     try {
       setLoading(true)
       const module = new FdpConnectModule(providerSettings)
-      const conn = await module.connect(providerSettings.selectedProvider)
+      const conn = await module.connect(provider)
 
       setConnector(conn)
+      if (provider === 'fairos') {
+        await conn.userLogin(
+          providerSettings.providers.fairos.options.username,
+          providerSettings.providers.fairos.options.password,
+        )
+      }
       const podList = await conn.listMounts()
       setPods(podList)
     } catch (e) {
@@ -131,6 +140,10 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoadingMessage(`Loading mount ${e.target.value}...`)
     setLoading(true)
 
+    await connector.podOpen({
+      name: e.target.value,
+      path: '/',
+    })
     const rootHandle = await connector.getFSHandler({
       name: e.target.value,
       path: '/',
@@ -377,9 +390,8 @@ export const DemoFSBrowser = ({ id, name }) => {
           </AccordionDetails>
           <AccordionActions>
             <Button
-              onChange={e => {
-                providerSettings.selectedProvider = 'fairos'
-                setProviderSettings(providerSettings)
+              onClick={e => {
+                handleApplyProvider('fairos')
               }}
               startIcon={defaultProvider === 'fairos' ? <CheckIcon /> : <></>}
               size="small"
@@ -413,9 +425,8 @@ export const DemoFSBrowser = ({ id, name }) => {
           </AccordionDetails>
           <AccordionActions>
             <Button
-              onChange={e => {
-                providerSettings.selectedProvider = 'ipfs'
-                setProviderSettings(providerSettings)
+              onClick={e => {
+                handleApplyProvider('ipfs')
               }}
               startIcon={defaultProvider === 'ipfs' ? <CheckIcon /> : <></>}
               size="small"
@@ -427,7 +438,6 @@ export const DemoFSBrowser = ({ id, name }) => {
 
         <DialogActions>
           <Button onClick={handleCloseSettings}>Close</Button>
-          <Button onClick={handleApplyProvider}>Apply</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={openMount} onClose={handleCloseMount}>
@@ -436,15 +446,14 @@ export const DemoFSBrowser = ({ id, name }) => {
           <DialogContentText>Select a mount to connect to </DialogContentText>
         </DialogContent>
         <nav>
-          <List>
-            <ListItem disablePadding>
-              {pods.map(pod => (
-                <ListItemButton key={pod.name}>
-                  <ListItemText primary={pod.name} onClick={handlePodChange} />
-                </ListItemButton>
-              ))}
-            </ListItem>
-          </List>
+          <select onChange={handlePodChange} id="pods">
+            <option defaultValue={''}>Select</option>
+            {pods.map(pod => (
+              <option value={pod.name} key={pod.name}>
+                {pod.name}
+              </option>
+            ))}
+          </select>
         </nav>
         <DialogActions>
           <Button onClick={handleCloseMount}>Close</Button>
