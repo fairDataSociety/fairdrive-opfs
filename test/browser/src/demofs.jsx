@@ -31,7 +31,10 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import { AccordionActions } from '@mui/material'
+import { AccordionActions, MenuItem } from '@mui/material'
+
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
@@ -140,10 +143,6 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoadingMessage(`Loading mount ${e.target.value}...`)
     setLoading(true)
 
-    await connector.podOpen({
-      name: e.target.value,
-      path: '/',
-    })
     const rootHandle = await connector.getFSHandler({
       name: e.target.value,
       path: '/',
@@ -446,14 +445,15 @@ export const DemoFSBrowser = ({ id, name }) => {
           <DialogContentText>Select a mount to connect to </DialogContentText>
         </DialogContent>
         <nav>
-          <select onChange={handlePodChange} id="pods">
-            <option defaultValue={''}>Select</option>
-            {pods.map(pod => (
-              <option value={pod.name} key={pod.name}>
-                {pod.name}
-              </option>
-            ))}
-          </select>
+          <FormControl fullWidth>
+            <Select onChange={handlePodChange} id="pods">
+              {pods.map(pod => (
+                <MenuItem value={pod.name} key={pod.name}>
+                  {pod.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </nav>
         <DialogActions>
           <Button onClick={handleCloseMount}>Close</Button>

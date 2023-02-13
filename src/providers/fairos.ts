@@ -102,9 +102,9 @@ export class FairosProviderDriver implements ProviderDriver {
    * @param options - options
    * @returns
    */
-  async download(id: string, mount: Mount, options = { path: '/' }): Promise<any> {
+  async download(id: string, mount: Mount): Promise<any> {
     const data = {
-      filePath: options.path + id,
+      filePath: id,
       podName: mount.name,
     }
 
@@ -118,7 +118,9 @@ export class FairosProviderDriver implements ProviderDriver {
       },
     })
 
-    return res.json()
+    const a = await res.arrayBuffer()
+
+    return new Uint8Array(a)
   }
 
   /**
@@ -133,7 +135,7 @@ export class FairosProviderDriver implements ProviderDriver {
     formData.append('files', file)
     formData.set('podName', mount.name)
     formData.append('fileName', file.name) //"index.json");
-    formData.set('dirPath', options.path) // "/");
+    formData.set('dirPath', mount.path) // "/");
     formData.set('blockSize', '1Mb')
 
     if (options.overwrite === true) formData.set('overwrite', 'true')
