@@ -93,6 +93,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [showError, setShowError] = React.useState(false)
   const [openMount, setOpenMount] = React.useState(false)
   const [openCreateFolder, setOpenCreateFolder] = React.useState(false)
+  const [openCreateRootFolder, setOpenCreateRootFolder] = React.useState(false)
 
   const handleOpenSettings = () => {
     setOpenSettings(true)
@@ -201,6 +202,23 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoading(false)
   }
 
+  async function handleCreateRootFolder() {
+    setLoadingMessage(`Creating folder ${currentPath}${folderName}...`)
+    setLoading(true)
+
+    if (connector.name === 'S3Provider') {
+      await connector.fileSystemDriver.createFolder(folderName)
+    } else if (connector.name === 'IPFSMfsProvider') {
+      // await connector.fileSystemDriver.createFolder(folderName)
+    } else if (connector.name === 'FairosProvider') {
+      // todo: create pod
+    }
+
+    setCurrentPath(`${currentPath}${folderName}/`)
+    setLoadingMessage('')
+    setLoading(false)
+  }
+
   async function handleFileDownload() {
     const h = selectedFileHandle.handle
     const blob = h.getFile()
@@ -296,7 +314,13 @@ export const DemoFSBrowser = ({ id, name }) => {
               <Button startIcon={<StorageIcon />} variant="contained" onClick={handleOpenMount}>
                 Pods / Root folders
               </Button>
-              <Button startIcon={<AddHomeIcon />} variant="contained" onClick={handleOpenMount}></Button>
+              <Button
+                startIcon={<AddHomeIcon />}
+                variant="contained"
+                onClick={e => {
+                  setOpenCreateRootFolder(true)
+                }}
+              ></Button>
               <div></div>
               <Button
                 disabled={!isMounted}
@@ -551,6 +575,25 @@ export const DemoFSBrowser = ({ id, name }) => {
             Close
           </Button>
           <Button onClick={handleCreateFolder}>Apply</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openCreateRootFolder} onClose={e => setOpenCreateRootFolder(false)}>
+        <DialogTitle>Create root folder</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Set folder name</DialogContentText>
+        </DialogContent>
+        <div>
+          <TextField required label="Name" variant="standard" onChange={e => setFolderName(e.target.value)} />
+        </div>
+        <DialogActions>
+          <Button
+            onClick={e => {
+              setOpenCreateRootFolder(false)
+            }}
+          >
+            Close
+          </Button>
+          <Button onClick={handleCreateRootFolder}>Apply</Button>
         </DialogActions>
       </Dialog>
     </Box>
