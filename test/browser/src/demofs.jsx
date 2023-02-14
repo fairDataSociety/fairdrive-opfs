@@ -45,6 +45,9 @@ const providers = {
   providers: {
     s3: {
       options: {
+        region: 'eu-west-1',
+        accessKeyId: 'S3RVER',
+        secretAccessKey: 'S3RVER',
         host: 'http://localhost:4568',
       },
       driver: import('@fairdatasociety/fairdrive-opfs'),
@@ -434,7 +437,77 @@ export const DemoFSBrowser = ({ id, name }) => {
             </Button>
           </AccordionActions>
         </Accordion>
-
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel2a-content"
+            id="panel2a-header"
+          >
+            <Typography>S3</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <div>
+              <TextField
+                onChange={e => {
+                  providerSettings.providers.s3.options.host = e.target.value
+                  setProviderSettings(providerSettings)
+                }}
+                required
+                id="standard-required"
+                label="S3 API"
+                defaultValue={providerSettings.providers.s3.options.host}
+                variant="standard"
+              />
+            </div>
+            <div>
+              <TextField
+                required
+                onChange={e => {
+                  providerSettings.providers.s3.options.region = e.target.value
+                }}
+                id="standard-required"
+                label="Region"
+                defaultValue={providerSettings.providers.s3.options.region}
+                variant="standard"
+              />
+            </div>
+            <div>
+              <TextField
+                required
+                onChange={e => {
+                  providerSettings.providers.s3.options.accessKeyId = e.target.value
+                }}
+                id="standard-required"
+                label="Access Key ID"
+                defaultValue={providerSettings.providers.s3.options.accessKeyId}
+                variant="standard"
+              />
+            </div>
+            <div>
+              <TextField
+                onChange={e => {
+                  providerSettings.providers.s3.options.password = e.target.value
+                }}
+                id="standard-password-input"
+                label="Secret Access Key"
+                type="password"
+                autoComplete="current-password"
+                variant="standard"
+              />
+            </div>
+          </AccordionDetails>
+          <AccordionActions>
+            <Button
+              onClick={e => {
+                handleApplyProvider('s3')
+              }}
+              startIcon={defaultProvider === 's3' ? <CheckIcon /> : <></>}
+              size="small"
+            >
+              Set as default
+            </Button>
+          </AccordionActions>
+        </Accordion>
         <DialogActions>
           <Button onClick={handleCloseSettings}>Close</Button>
         </DialogActions>

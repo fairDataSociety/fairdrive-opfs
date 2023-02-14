@@ -1,16 +1,18 @@
 import { Mount, Entries, FdpConnectProvider } from '../core/provider'
 import { ProviderDriver } from '../core/provider-driver'
-import { AWSS3Client } from 'aws-client-s3'
+import AWSClientS3 from 'aws-client-s3'
 /**
  * S3ProviderDriver is the driver for AWS S3 provider.
  */
 export class S3ProviderDriver implements ProviderDriver {
   host: string
-  region: string
-  client: AWSS3Client
-  constructor(options: { host: string; region: string }) {
+  client: AWSClientS3
+  constructor(options: { host: string; region: string; accessKeyId: string; secretAccessKey: string }) {
     this.host = options.host
-    this.client = new AWSS3Client({ region: options.region, endpoint: options.host })
+    this.client = new AWSClientS3({
+      region: options.region,
+      credentials: { accessKeyId: 'S3RVER', secretAccessKey: 'S3RVER' },
+    })
   }
   /**
    * Verify if a file exists
