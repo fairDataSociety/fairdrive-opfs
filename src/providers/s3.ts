@@ -11,7 +11,7 @@ export class S3ProviderDriver implements ProviderDriver {
     this.host = options.host
     this.client = new AWSClientS3({
       region: options.region,
-      credentials: { accessKeyId: 'S3RVER', secretAccessKey: 'S3RVER' },
+      credentials: { accessKeyId: options.accessKeyId, secretAccessKey: options.secretAccessKey },
     })
   }
   /**

@@ -32,7 +32,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
 import { AccordionActions, MenuItem } from '@mui/material'
-
+import AddHomeIcon from '@mui/icons-material/AddHome'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 
@@ -294,8 +294,9 @@ export const DemoFSBrowser = ({ id, name }) => {
                 Settings
               </Button>
               <Button startIcon={<StorageIcon />} variant="contained" onClick={handleOpenMount}>
-                Mounts
+                Pods / Root folders
               </Button>
+              <Button startIcon={<AddHomeIcon />} variant="contained" onClick={handleOpenMount}></Button>
               <div></div>
               <Button
                 disabled={!isMounted}
