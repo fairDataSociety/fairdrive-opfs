@@ -31,9 +31,10 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import { AccordionActions, MenuItem } from '@mui/material'
+import { AccordionActions, Checkbox, MenuItem } from '@mui/material'
 import AddHomeIcon from '@mui/icons-material/AddHome'
 import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import Select from '@mui/material/Select'
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -45,10 +46,12 @@ const providers = {
   providers: {
     s3: {
       options: {
-        region: 'eu-west-1',
-        accessKeyId: 'S3RVER',
-        secretAccessKey: 'S3RVER',
-        host: 'http://localhost:4568',
+        endpoint: 'localhost',
+        port: 4568,
+        region: 'us-east-1',
+        useSSL: false,
+        accessKeyId: 'S3rver',
+        secretAccessKey: 'S3rver',
       },
       driver: import('@fairdatasociety/fairdrive-opfs'),
       type: 'S3Provider',
@@ -206,13 +209,7 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoadingMessage(`Creating folder ${currentPath}${folderName}...`)
     setLoading(true)
 
-    if (connector.name === 'S3Provider') {
-      await connector.fileSystemDriver.createFolder(folderName)
-    } else if (connector.name === 'IPFSMfsProvider') {
-      // await connector.fileSystemDriver.createFolder(folderName)
-    } else if (connector.name === 'FairosProvider') {
-      // todo: create pod
-    }
+    await connector.filesystemDriver.createDir(folderName, {})
 
     setCurrentPath(`${currentPath}${folderName}/`)
     setLoadingMessage('')
@@ -311,9 +308,7 @@ export const DemoFSBrowser = ({ id, name }) => {
               <Button startIcon={<SettingsIcon />} variant="contained" onClick={handleOpenSettings}>
                 Settings
               </Button>
-              <Button startIcon={<StorageIcon />} variant="contained" onClick={handleOpenMount}>
-                Pods / Root folders
-              </Button>
+              <Button startIcon={<StorageIcon />} variant="contained" onClick={handleOpenMount}></Button>
               <Button
                 startIcon={<AddHomeIcon />}
                 variant="contained"
@@ -473,15 +468,39 @@ export const DemoFSBrowser = ({ id, name }) => {
           <AccordionDetails>
             <div>
               <TextField
-                onChange={e => {
-                  providerSettings.providers.s3.options.host = e.target.value
-                  setProviderSettings(providerSettings)
-                }}
                 required
+                onChange={e => {
+                  providerSettings.providers.s3.options.endpoint = e.target.value
+                }}
                 id="standard-required"
-                label="S3 API"
-                defaultValue={providerSettings.providers.s3.options.host}
+                label="Endpoint"
+                defaultValue={providerSettings.providers.s3.options.endpoint}
                 variant="standard"
+              />
+            </div>
+            <div>
+              <TextField
+                required
+                onChange={e => {
+                  providerSettings.providers.s3.options.port = e.target.value
+                }}
+                label="Port"
+                defaultValue={providerSettings.providers.s3.options.port}
+                variant="standard"
+              />
+            </div>
+            <div>
+              <FormControlLabel
+                label="Use TLS"
+                control={
+                  <Checkbox
+                    onChange={e => {
+                      providerSettings.providers.s3.options.useSSL =
+                        !providerSettings.providers.s3.options.useSSL
+                    }}
+                    checked={providerSettings.providers.s3.options.useSSL}
+                  />
+                }
               />
             </div>
             <div>
@@ -490,7 +509,6 @@ export const DemoFSBrowser = ({ id, name }) => {
                 onChange={e => {
                   providerSettings.providers.s3.options.region = e.target.value
                 }}
-                id="standard-required"
                 label="Region"
                 defaultValue={providerSettings.providers.s3.options.region}
                 variant="standard"
@@ -502,7 +520,6 @@ export const DemoFSBrowser = ({ id, name }) => {
                 onChange={e => {
                   providerSettings.providers.s3.options.accessKeyId = e.target.value
                 }}
-                id="standard-required"
                 label="Access Key ID"
                 defaultValue={providerSettings.providers.s3.options.accessKeyId}
                 variant="standard"
@@ -511,9 +528,8 @@ export const DemoFSBrowser = ({ id, name }) => {
             <div>
               <TextField
                 onChange={e => {
-                  providerSettings.providers.s3.options.password = e.target.value
+                  providerSettings.providers.s3.options.secretAccessKey = e.target.value
                 }}
-                id="standard-password-input"
                 label="Secret Access Key"
                 type="password"
                 autoComplete="current-password"

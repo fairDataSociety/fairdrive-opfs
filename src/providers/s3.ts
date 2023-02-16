@@ -1,18 +1,29 @@
 import { Mount, Entries, FdpConnectProvider } from '../core/provider'
 import { ProviderDriver } from '../core/provider-driver'
-import AWSClientS3 from 'aws-client-s3'
+import * as Minio from 'minio'
 /**
  * S3ProviderDriver is the driver for AWS S3 provider.
  */
 export class S3ProviderDriver implements ProviderDriver {
-  host: string
-  client: AWSClientS3
-  constructor(options: { host: string; region: string; accessKeyId: string; secretAccessKey: string }) {
-    this.host = options.host
-    this.client = new AWSClientS3({
-      region: options.region,
-      credentials: { accessKeyId: options.accessKeyId, secretAccessKey: options.secretAccessKey },
+  client: Minio.Client
+  region: string
+  constructor(options: {
+    port: number
+    endpoint: string
+    region: string
+    useSSL: boolean
+    accessKeyId: string
+    secretAccessKey: string
+  }) {
+    this.client = new Minio.Client({
+      // region: options.region,
+      endPoint: options.endpoint,
+      port: options.port,
+      useSSL: options.useSSL,
+      accessKey: options.accessKeyId,
+      secretKey: options.secretAccessKey,
     })
+    this.region = options.region
   }
   /**
    * Verify if a file exists
@@ -21,7 +32,10 @@ export class S3ProviderDriver implements ProviderDriver {
    * @returns Returns true if the file exists, else false
    */
   async exists(path: string, mount: Mount): Promise<boolean> {
-    return false
+    // Get stat information for my-objectname.
+    const stat = await this.client.statObject(mount.name, path)
+
+    return stat.size > 0
   }
 
   /**
@@ -32,7 +46,7 @@ export class S3ProviderDriver implements ProviderDriver {
    */
   async createDir(name: string, mount: Mount): Promise<boolean> {
     try {
-      const createBucketResult = await this.client.createBucket(name)
+      const createBucketResult = await this.client.makeBucket(name, this.region)
 
       return true
     } catch (e) {
@@ -42,10 +56,7 @@ export class S3ProviderDriver implements ProviderDriver {
 
   async delete(filePath: string, mount: Mount): Promise<boolean> {
     try {
-      await this.client.deleteFile({
-        bucket: mount.path,
-        key: filePath,
-      })
+      await this.client.removeObject(mount.name, filePath)
 
       return true
     } catch (e) {
@@ -57,22 +68,24 @@ export class S3ProviderDriver implements ProviderDriver {
   }
 
   async read(mount: Mount): Promise<Entries> {
-    const listObjectsResult = await this.client.listBucketObjects(mount.path)
-    const entries = {
-      dirs: [],
-      files: [],
-      mount,
-    } as Entries
+    return new Promise(async (resolve, reject) => {
+      const res = await this.client.listObjects(mount.name, '', true)
+      const entries = {
+        dirs: [],
+        files: [],
+        mount,
+      } as Entries
 
-    for (const i of listObjectsResult.Contents) {
-      if (i.type === 'directory') {
-        entries.dirs.push(i.name)
-      } else {
+      res.on('data', i => {
         entries.files.push(i.name)
-      }
-    }
-
-    return entries
+      })
+      res.on('error', e => {
+        reject(e)
+      })
+      res.on('end', () => {
+        resolve(entries)
+      })
+    })
   }
 
   /**
@@ -83,15 +96,14 @@ export class S3ProviderDriver implements ProviderDriver {
    * @returns
    */
   async download(id: string, mount: Mount, options = {}): Promise<any> {
-    const fileStream = await this.client.readFile(
-      {
-        bucket: mount.path,
-        key: id,
-      },
-      'buffer',
-    )
+    const fileStream = await this.client.getObject(mount.name, id)
+    const buffers = []
 
-    return Buffer.from(fileStream)
+    for await (const data of fileStream) {
+      buffers.push(data)
+    }
+
+    return Buffer.concat(buffers)
   }
 
   /**
@@ -102,10 +114,7 @@ export class S3ProviderDriver implements ProviderDriver {
    */
   async upload(file: File, mount: Mount, options = {}): Promise<any> {
     const buf = await file.arrayBuffer()
-    const res = await this.client.uploadFile(Buffer.from(buf), {
-      bucket: mount.path,
-      key: file.name,
-    })
+    const res = await this.client.putObject(mount.name, file.name, Buffer.from(buf))
 
     return res
   }
@@ -114,6 +123,7 @@ export class S3ProviderDriver implements ProviderDriver {
  * S3Provider is the provider for AWS S3.
  */
 export class S3Provider extends FdpConnectProvider {
+  client: Minio.Client
   constructor(private host: string = 'http://localhost:4568/') {
     super({
       name: 'S3Provider',
@@ -123,10 +133,16 @@ export class S3Provider extends FdpConnectProvider {
   initialize(options: any): void {
     super.initialize(options)
 
-    this.filesystemDriver = new S3ProviderDriver(options)
+    const s3 = new S3ProviderDriver(options)
+    this.client = s3.client
+    this.filesystemDriver = s3
   }
 
   async listMounts(): Promise<Mount[]> {
-    return [{ name: 'root', path: '/' }]
+    const listBucketsResult = await this.client.listBuckets()
+
+    return listBucketsResult.map(i => {
+      return { name: i.name, path: '/' }
+    })
   }
 }
