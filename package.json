@@ -38,7 +38,8 @@
     "ipfs-http-client": "^60.0.0",
     "minio": "^7.0.32",
     "rxjs": "^7.8.0",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "typescript-aws-s3-helper": "^2.0.50"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",

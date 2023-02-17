@@ -49,7 +49,7 @@ const providers = {
         endpoint: 'localhost',
         port: 4568,
         region: 'us-east-1',
-        useSSL: false,
+        useSSL: true,
         accessKeyId: 'S3rver',
         secretAccessKey: 'S3rver',
       },
@@ -495,10 +495,9 @@ export const DemoFSBrowser = ({ id, name }) => {
                 control={
                   <Checkbox
                     onChange={e => {
-                      providerSettings.providers.s3.options.useSSL =
-                        !providerSettings.providers.s3.options.useSSL
+                      providerSettings.providers.s3.options.useSSL = e.target.checked
                     }}
-                    checked={providerSettings.providers.s3.options.useSSL}
+                    defaultChecked={providerSettings.providers.s3.options.useSSL}
                   />
                 }
               />
@@ -594,7 +593,7 @@ export const DemoFSBrowser = ({ id, name }) => {
         </DialogActions>
       </Dialog>
       <Dialog open={openCreateRootFolder} onClose={e => setOpenCreateRootFolder(false)}>
-        <DialogTitle>Create root folder</DialogTitle>
+        <DialogTitle>Set S3 Bucket</DialogTitle>
         <DialogContent>
           <DialogContentText>Set folder name</DialogContentText>
         </DialogContent>

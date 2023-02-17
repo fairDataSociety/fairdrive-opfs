@@ -82,7 +82,7 @@ export class S3ProviderDriver implements ProviderDriver {
       res.on('error', e => {
         reject(e)
       })
-      res.on('end', () => {
+      res.on('end', e => {
         resolve(entries)
       })
     })
@@ -96,7 +96,7 @@ export class S3ProviderDriver implements ProviderDriver {
    * @returns
    */
   async download(id: string, mount: Mount, options = {}): Promise<any> {
-    const fileStream = await this.client.getObject(mount.name, id)
+    const fileStream = await this.client.getObject(mount.name, id.substring(1))
     const buffers = []
 
     for await (const data of fileStream) {
