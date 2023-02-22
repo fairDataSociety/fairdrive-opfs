@@ -116,8 +116,37 @@ await ipfsConnector.filesystemDriver.upload(file, DefaultMount, {})
 
 ## Drivers
 
-- Fairos: `@fairdatasociety/fairdrive-connector/providers/fairos`
-- IPFS-Mfs: `@fairdatasociety/fairdrive-connector/providers/ipfs-mfs`
+###  Fairos
+
+
+> `@fairdatasociety/fairdrive-opfs`/providers/fairos`
+
+#### Configuration
+
+
+- `host`: Fairos RPC
+- `username`: Username
+- `password`: Password
+
+### IPFS-Mfs
+> `@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs`
+#### Configuration
+
+
+- `host`: IPFS RPC
+
+
+### S3-compatible (AWS S3, Minio)
+> `@fairdatasociety/fairdrive-opfs/providers/s3`
+#### Configuration
+
+
+- `accessKeyId`: Access Key id
+- `secretAccessKey`: Secret access key
+- `region`: Region
+- `useSSL`: Enables SSL/TLS
+- `port`: RPC port
+- `endpoint`: RPC endpoint
 
 ### Implementing a new Fairdrive Connector
 
