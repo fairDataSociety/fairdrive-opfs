@@ -8,6 +8,7 @@
     "url": "git+https://github.com/fairDataSociety/fairdrive-opfs.git"
   },
   "scripts": {
+    "docs": "npx typedoc src/ --out docs --excludePrivate --excludeExternals --excludeProtected --excludePrivate --exclude '**/*.spec.ts' --exclude '**/*.test.ts' --exclude '**/*.spec.tsx' --exclude '**/*.test.tsx' --exclude '**/*.spec.js' --exclude '**/*.test.js'",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose",
     "prepare": "rimraf dist && npm run compile:types && tsc",
     "test:unit": "jest --verbose --selectProjects=node:unit node:unit --config=jest.config.ts",
