@@ -119,7 +119,7 @@ await ipfsConnector.filesystemDriver.upload(file, DefaultMount, {})
 ###  Fairos
 
 
-> `@fairdatasociety/fairdrive-opfs`/providers/fairos`
+> `@fairdatasociety/fairdrive-opfs/providers/fairos`
 
 #### Configuration
 
