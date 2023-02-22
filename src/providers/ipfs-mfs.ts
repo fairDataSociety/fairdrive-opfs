@@ -45,6 +45,7 @@ export class IpfsMfsProviderDriver implements ProviderDriver {
 
       return true
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e)
 
       return false
@@ -111,5 +112,9 @@ export class IPFSMfsProvider extends FdpConnectProvider {
     super.initialize(options)
 
     this.filesystemDriver = new IpfsMfsProviderDriver(options)
+  }
+
+  async listMounts(): Promise<Mount[]> {
+    return [{ name: 'root', path: '/' }]
   }
 }

@@ -78,12 +78,12 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    if (res.status === 200) {
+    if (res.status === 200 && res.size > 0) {
       const data = await res.json()
 
       return {
-        dirs: data.dirs,
-        files: data.files,
+        dirs: (data.dirs || []).map((dir: any) => dir.name),
+        files: (data.files || []).map((file: any) => file.name),
         mount,
       }
     } else {
@@ -102,9 +102,9 @@ export class FairosProviderDriver implements ProviderDriver {
    * @param options - options
    * @returns
    */
-  async download(id: string, mount: Mount, options = { path: '/' }): Promise<any> {
+  async download(id: string, mount: Mount): Promise<any> {
     const data = {
-      filePath: options.path + id,
+      filePath: id,
       podName: mount.name,
     }
 
@@ -118,7 +118,9 @@ export class FairosProviderDriver implements ProviderDriver {
       },
     })
 
-    return res.json()
+    const a = await res.arrayBuffer()
+
+    return new Uint8Array(a)
   }
 
   /**
@@ -133,7 +135,7 @@ export class FairosProviderDriver implements ProviderDriver {
     formData.append('files', file)
     formData.set('podName', mount.name)
     formData.append('fileName', file.name) //"index.json");
-    formData.set('dirPath', options.path) // "/");
+    formData.set('dirPath', mount.path) // "/");
     formData.set('blockSize', '1Mb')
 
     if (options.overwrite === true) formData.set('overwrite', 'true')
@@ -157,8 +159,19 @@ export class FairosProvider extends FdpConnectProvider {
     })
   }
 
+  /**
+   * Initialize the provider
+   * @param options options
+   */
   initialize(options: any): void {
     super.initialize(options)
+
+    this.onMount.subscribe(async (mount: Mount) => {
+      if (mount.name !== this.getCurrentMount().name) {
+        this.podClose(mount)
+      }
+      this.podOpen(mount)
+    })
 
     this.filesystemDriver = new FairosProviderDriver(options)
   }
@@ -205,7 +218,7 @@ export class FairosProvider extends FdpConnectProvider {
   }
 
   async listMounts(): Promise<Mount[]> {
-    const res = await fetch(`${this.host}v1/pod/ls`, {
+    const res = await fetch(`${this.host}v1/pod/ls?podName=`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

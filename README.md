@@ -14,33 +14,37 @@ Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0
 
 ## Install
 
-`npm install @fairdatasociety/fairdrive-connector`
+`npm install @fairdatasociety/fairdrive-opfs`
 
 ## Usage
 ```typescript
-import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-connector'
+import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-opfs'
 import { fileSave } from 'browser-fs-access'
 
 // Add providers
 const module = new FdpConnectModule({
   providers: {
-    fairos: {
-      options: {
-        host: 'https://fairos.staging.fairdatasociety.org/',
-      },
-      provider: '@fairdatasociety/fairdrive-connector/providers/fairos',
-    },
     ipfs: {
       options: {
-        host: 'http://localhost:5001/api/v0/',
+        host: 'http://localhost:5001',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
-    },    
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'IPFSMfsProvider',
+    },
+    fairos: {
+      options: {
+        username: '',
+        password: '',
+        host: 'https://fairos.fairdatasociety.org/',
+      },
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'FairosProvider',
+    },
   },
 })
 
 // Connect to Fairos
-const connector = await module.connect('fairos', FairosProvider)
+const connector = await module.connect('fairos')
 
 // Provider calls that manage authentication, authz and mounts are at the top level
 await connector.userLogin(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
@@ -52,8 +56,6 @@ const selectedMount = {
   name: podList[0],
   path: '/'
 }
-
-await connector.podOpen(selectedMount)
 
 // OPFS driver interface is available with getFSHandler
 const currentFolderHandle = await connector.getFSHandler(selectedMount)
