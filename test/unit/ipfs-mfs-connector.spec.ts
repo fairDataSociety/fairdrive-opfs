@@ -28,13 +28,15 @@ describe('ipfs mfs driver', () => {
           options: {
             host: 'https://fairos.staging.fairdatasociety.org/',
           },
-          driver: '../../src/providers/fairos',
+          driver: import('../../src'),
+          type: 'FairosProvider',
         },
         ipfsmfs: {
           options: {
-            host: 'http://localhost:5001/api/v0/',
+            host: 'http://localhost:5001',
           },
-          driver: '../../src/providers/ipfs-mfs',
+          driver: import('../../src'),
+          type: 'IPFSMfsProvider',
         },
       },
     })
