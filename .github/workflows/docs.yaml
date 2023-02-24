@@ -1,10 +1,11 @@
 name: Typedocs
 
 on:
-- push
+  - push
 jobs:
   build:
     steps:
-    - uses: actions/checkout@v2
-    - uses: TypeStrong/typedoc-action@v1
-      with: repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+      - uses: TypeStrong/typedoc-action@v1
+        with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
