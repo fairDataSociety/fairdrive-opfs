@@ -1,11 +1,15 @@
-name: Typedocs
-
+name: Publish Typedoc to Github Pages
 on:
-  - push
+  push:
+    branches:
+      - main
+      - development
 jobs:
-  build:
+  publish:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: TypeStrong/typedoc-action@v1
         with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+          args: --entrypoints src/index.ts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
