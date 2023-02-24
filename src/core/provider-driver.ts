@@ -5,12 +5,19 @@ import { Mount, Entries } from './provider'
  */
 export interface ProviderDriver {
   /**
-   * Reuturns true if the file or directory exists
+   * Returns true if the file or directory exists
    * @param name - The name of the file or directory
    * @param mount - mount point
    * @returns A boolean value indicating whether the file or directory exists
    */
   exists: (name: string, mount: Mount) => Promise<boolean>
+
+  /**
+   * Creates a directory
+   * @param name - name of the directory
+   * @param mount - mount point
+   * @returns Returns true if the directory was created, else false
+   */
   createDir: (name: string, mount: Mount) => Promise<boolean>
   /**
    * Delete a file or directory
