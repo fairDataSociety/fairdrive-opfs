@@ -1,4 +1,5 @@
-# .github/workflows/docs.yml
+name: Typedocs
+
 on:
 - push
 jobs:
