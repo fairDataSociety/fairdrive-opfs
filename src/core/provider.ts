@@ -8,6 +8,7 @@ import {
 const { GONE } = errors
 import { errors } from 'file-system-access/lib/util.js'
 import { Subject } from 'rxjs'
+import { FileSync } from './file-sync'
 import { ProviderDriver } from './provider-driver'
 
 // Entries represents a list of files and directories
@@ -50,6 +51,14 @@ export abstract class FdpConnectProvider {
     this.onMount.next(mount)
 
     return getOriginPrivateDirectory(adapter, { mount, driver: this.filesystemDriver })
+  }
+
+  /**
+   * getTransferHandler returns a FileSync for the given provider.
+   * @returns a FileSync
+   */
+  getTransferHandler(): FileSync {
+    return new FileSync(this.filesystemDriver)
   }
 }
 

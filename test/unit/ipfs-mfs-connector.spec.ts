@@ -122,7 +122,24 @@ describe('ipfs mfs driver', () => {
     )
     const driver = module.getConnectedProviders('ipfsmfs')
     await driver.filesystemDriver.upload(new File([], faker.system.fileName()), DefaultMount, {})
+    expect(fetchMock).toHaveBeenCalled()
   })
+  it('should transfer file', async () => {
+    const ipfs = await module.connect('ipfsmfs')
+
+    expect(ipfs).toBeDefined()
+
+    fetchMock.mockOnce(async () =>
+      Promise.resolve({
+        status: 200,
+        body: JSON.stringify({ Hash: 'QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5n' }),
+      }),
+    )
+    const receiver = module.getConnectedProviders('ipfsmfs').getTransferHandler()
+    await receiver.transfer(new File([], faker.system.fileName()), DefaultMount)
+    expect(fetchMock).toHaveBeenCalled()
+  })
+
   xit('should download file', async () => {
     const ipfs = await module.connect('ipfsmfs')
 
