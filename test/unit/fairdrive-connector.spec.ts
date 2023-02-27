@@ -221,6 +221,55 @@ describe('fairdrive connector module', () => {
 
     const driver = module.getConnectedProviders('fairos')
     await driver.filesystemDriver.upload(new File([], faker.system.fileName()), mounts[0], {})
+    expect(fetchMock).toHaveBeenCalled()
+  })
+  it('should transfer file', async () => {
+    const fairosConnector = await module.connect('fairos')
+    expect(fairosConnector).toBeDefined()
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        address: faker.finance.ethereumAddress(),
+        message: 'mock response ',
+        nameHash: faker.datatype.hexadecimal({ length: 32, prefix: '', case: 'lower' }),
+        publicKey: faker.datatype.hexadecimal({ length: 64, prefix: '', case: 'lower' }),
+      }),
+    )
+
+    await fairosConnector.userLogin(username, password)
+
+    expect(fetchMock).toHaveBeenCalled()
+
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        pods: ['panama', 'colombia', 'costa_rica'],
+        sharedPods: ['nicaragua'],
+      }),
+    )
+
+    const mounts = await fairosConnector.listMounts()
+    expect(fetchMock).toHaveBeenCalled()
+    expect(mounts.length).toBe(3)
+
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        dirs: [
+          {
+            accessTime: faker.datatype.datetime().getTime(),
+            blockSize: '1024',
+            contentType: faker.system.mimeType(),
+            creationTime: faker.datatype.datetime().getTime(),
+            mode: 0,
+            modificationTime: faker.datatype.datetime().getTime(),
+            name: faker.system.fileName(),
+            size: faker.datatype.number(),
+          },
+        ],
+      }),
+    )
+
+    const receiver = module.getConnectedProviders('fairos').getTransferHandler()
+    await receiver.transfer(new File([], faker.system.fileName()), mounts[0])
+    expect(fetchMock).toHaveBeenCalled()
   })
   it('should download file', async () => {
     const fairosConnector = await module.connect('fairos')

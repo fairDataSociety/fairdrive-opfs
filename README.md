@@ -112,6 +112,31 @@ const DefaultMount = {
 }
 await ipfsConnector.filesystemDriver.upload(file, DefaultMount, {})
 
+
+
+// ===================================
+// File transfer to other provider
+// ===================================
+const from = module.getConnectedProviders('ipfs')
+const to = module.getConnectedProviders('fairos')
+
+// Create a new FileSync object
+const syncToFairos = new FileSync(to);
+
+// or create one with getTransferHandler
+const syncToFairos = module.getConnectedProviders('fairos').getTransferHandler()
+
+syncToFairos.onStart.subscribe((file, mount) => {
+  // ...
+})
+syncToFairos.onComplete.subscribe((result) => {
+  // ...
+})
+syncToFairos.onError.subscribe((err) => {
+  // ...
+})
+
+await syncToFairos.transfer(file, mount)
 ```
 
 ## Drivers
