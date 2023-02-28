@@ -101,6 +101,7 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [openTransferDialog, setTransferDialog] = React.useState(false)
   const [destinationMount, setDestinationMount] = React.useState('')
   const [destinationProvider, setDestinationProvider] = React.useState('')
+  const [selectedFileName, setSelectedFileName] = React.useState('')
 
   const handleOpenSettings = () => {
     setOpenSettings(true)
@@ -221,6 +222,11 @@ export const DemoFSBrowser = ({ id, name }) => {
   }
 
   async function handleTransfer() {
+    setLoadingMessage(
+      `Transfer ${selectedFileHandle.handle.name}} to ${destinationProvider} at ${destinationMount}`,
+    )
+    setLoading(true)
+
     const handle = selectedFileHandle.handle
     const blob = await handle.getFile()
 
@@ -234,6 +240,10 @@ export const DemoFSBrowser = ({ id, name }) => {
       name: destinationMount,
       path: '/',
     })
+
+    setLoadingMessage('')
+    setLoading(false)
+    setTransferDialog(false)
   }
 
   async function handleFileDownload() {
@@ -313,10 +323,12 @@ export const DemoFSBrowser = ({ id, name }) => {
   const handleAction = podItem =>
     useCallback(
       data => {
+        if (!data.payload.file) return
         setSelectedFileHandle(data.payload.file)
+        setSelectedFileName(data.payload.file.handle.name)
         setIsSelected(true)
       },
-      [podItem, loading, selectedFileHandle],
+      [podItem, selectedFileHandle],
     )
 
   return (
@@ -625,6 +637,7 @@ export const DemoFSBrowser = ({ id, name }) => {
         <DialogContent>
           <DialogContentText>Set destination</DialogContentText>
         </DialogContent>
+        <div>File: {selectedFileName}</div>
         <div>
           <TextField
             required
