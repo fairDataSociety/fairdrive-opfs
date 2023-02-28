@@ -1,13 +1,11 @@
 import React from 'react'
 import './App.css'
-import { FairdriveBrowser } from './fairdrive'
-import { IpfsBrowser } from './ipfs'
+import { DemoFSBrowser } from './demofs'
 
 const App = () => {
   return (
     <div className="App" style={{ display: 'flex' }}>
-      <IpfsBrowser name="ipfs" id="ipfs" />
-      <FairdriveBrowser name="fairos" id="fairos" />
+      <DemoFSBrowser name={'DemoFS'} id="DemoFS" />
     </div>
   )
 }

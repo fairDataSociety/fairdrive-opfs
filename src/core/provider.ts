@@ -5,11 +5,13 @@ import {
   WriteChunk,
 } from 'file-system-access/lib/interfaces'
 
-const { INVALID, GONE, SYNTAX } = errors
+const { GONE } = errors
 import { errors } from 'file-system-access/lib/util.js'
+import { Subject } from 'rxjs'
+import { FileSync } from './file-sync'
 import { ProviderDriver } from './provider-driver'
 
-//
+// Entries represents a list of files and directories
 export interface Entries {
   files: Array<string>
   dirs: Array<string>
@@ -20,11 +22,21 @@ export interface Entries {
  * FdpConnectProvider is the base class for all providers.
  */
 export abstract class FdpConnectProvider {
+  onMount: Subject<Mount> = new Subject()
+  mount: Mount
   constructor(private config: any) {}
 
   filesystemDriver!: ProviderDriver
   initialize(options: any) {
     Object.assign(this, options)
+  }
+
+  /**
+   * Get the current mount point.
+   * @returns Current mount point
+   */
+  getCurrentMount() {
+    return this.mount
   }
 
   /**
@@ -35,12 +47,22 @@ export abstract class FdpConnectProvider {
   async getFSHandler(mount: Mount) {
     const adapter = await import('./adapter') // FdpConnectAdapter(mount, this.filesystemDriver)
 
+    this.mount = mount
+    this.onMount.next(mount)
+
     return getOriginPrivateDirectory(adapter, { mount, driver: this.filesystemDriver })
+  }
+
+  /**
+   * getTransferHandler returns a FileSync for the given provider.
+   * @returns a FileSync
+   */
+  getTransferHandler(): FileSync {
+    return new FileSync(this.filesystemDriver)
   }
 }
 
 const File = globalThis.File
-const Blob = globalThis.Blob
 
 /**
  * Mount represents a logical mount point for a provider to be mounted on.
@@ -52,14 +74,8 @@ export interface Mount {
   name: string
 }
 
-export class FairDriveMount implements Mount {
-  path = ''
-  name = ''
-}
-
 class Sink implements UnderlyingSink<WriteChunk> {
   private file: File
-  private position = 0
 
   driver: ProviderDriver
   mount: Mount
@@ -84,15 +100,20 @@ class Sink implements UnderlyingSink<WriteChunk> {
     }
   }
 
+  /**
+   * Write a chunk to the file
+   */
   async write(chunk: WriteChunk) {
     this.file = chunk as File
   }
 
+  /**
+   * Close the file
+   */
   async close() {
     return new Promise<void>(async (resolve, reject) => {
-      const buffer = await this.file.arrayBuffer()
       try {
-        await this.driver.upload(this.file, this.mount, Buffer.from(buffer))
+        await this.driver.upload(this.file, this.mount, {})
         resolve()
       } catch (e) {
         reject(e)
@@ -108,14 +129,17 @@ export class FileHandle implements FileSystemFileHandleAdapter {
   mount: Mount
   driver: ProviderDriver
   public onclose?(self: this): void
+  writable = true
 
   constructor(mount: Mount, driver: ProviderDriver, name: string) {
     this.mount = mount
     this.driver = driver
     this.name = name
   }
-  writable = true
 
+  /**
+   * Get the file
+   */
   async getFile() {
     try {
       const data = await this.driver.download(`${this.mount.path}${this.name}`, this.mount, {})
@@ -126,6 +150,9 @@ export class FileHandle implements FileSystemFileHandleAdapter {
     }
   }
 
+  /**
+   * Create a writable stream
+   */
   async createWritable(opts?: FileSystemCreateWritableOptions) {
     let file
     if (opts && !opts.keepExistingData) {
@@ -137,8 +164,10 @@ export class FileHandle implements FileSystemFileHandleAdapter {
     return new Sink(this.mount, this.driver, file)
   }
 
+  /**
+   * Check if the file is the same as the other file
+   */
   async isSameEntry(other: FileHandle) {
-    // TODO: Add path separator
     return this.name === other.name
   }
 }
@@ -161,6 +190,9 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
     this.path = this.mount.path
   }
 
+  /**
+   * Entries returns a list of files and directories
+   */
   async *entries() {
     const entries = await this.driver.read(this.mount)
     if (entries && entries.dirs && entries.dirs.length > 0) {
@@ -176,10 +208,16 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
     }
   }
 
+  /**
+   * Check if the folder is the same as the other folder
+   */
   async isSameEntry(other: FolderHandle) {
     return this.path === other.path
   }
 
+  /**
+   * GetDirectoryHandle returns a directory handle
+   */
   async getDirectoryHandle(name: string, opts: FileSystemGetDirectoryOptions = {}) {
     return new Promise<FolderHandle>(async (resolve, reject) => {
       if (opts.create) {
@@ -200,13 +238,15 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
     })
   }
 
+  /**
+   * GetFileHandle returns a file handle
+   */
   async getFileHandle(name: string, opts: FileSystemGetFileOptions = {}) {
     return new Promise<FileHandle>(async (resolve, reject) => {
       try {
         if (opts.create) {
           resolve(new FileHandle(this.mount, this.driver, name))
         } else {
-          const data = await this.driver.download(`${this.mount.path}${name}`, this.mount, {})
           resolve(new FileHandle(this.mount, this.driver, name))
         }
       } catch (e) {
@@ -215,6 +255,9 @@ export class FolderHandle implements FileSystemFolderHandleAdapter {
     })
   }
 
+  /**
+   * Removes a file
+   */
   async removeEntry(name: string, opts: FileSystemRemoveOptions = {}) {
     return new Promise<void>(async (resolve, reject) => {
       try {

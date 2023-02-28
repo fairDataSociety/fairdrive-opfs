@@ -1,13 +1,14 @@
 {
-  "name": "@fairdatasociety/fairdrive-connector",
-  "version": "0.1.2",
-  "description": "Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 ",
+  "name": "@fairdatasociety/fairdrive-opfs",
+  "version": "0.1.4",
+  "description": "Fairdrive OPFS - integrate data sources from Web 2.0 or Web 3.0 ",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fairDataSociety/fairdrive-connector.git"
+    "url": "git+https://github.com/fairDataSociety/fairdrive-opfs.git"
   },
   "scripts": {
+    "docs": "npx typedoc src/ --out docs --excludePrivate --excludeExternals --excludeProtected --excludePrivate --exclude '**/*.spec.ts' --exclude '**/*.test.ts' --exclude '**/*.spec.tsx' --exclude '**/*.test.tsx' --exclude '**/*.spec.js' --exclude '**/*.test.js'",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose",
     "prepare": "rimraf dist && npm run compile:types && tsc",
     "test:unit": "jest --verbose --selectProjects=node:unit node:unit --config=jest.config.ts",
@@ -25,15 +26,17 @@
   "author": "Rogelio Morrell",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fairDataSociety/fairdrive-connector/issues"
+    "url": "https://github.com/fairDataSociety/fairdrive-opfs/issues"
   },
-  "homepage": "https://github.com/fairDataSociety/fairdrive-connector#readme",
+  "homepage": "https://github.com/fairDataSociety/fairdrive-opfs#readme",
   "dependencies": {
     "dotenv": "^16.0.3",
     "fetch-blob": "^3.2.0",
     "file-system-access": "^1.0.4",
     "formdata-polyfill": "^4.0.10",
-    "ipfs-http-client": "^60.0.0"
+    "ipfs-http-client": "^60.0.0",
+    "minio": "^7.0.32",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
@@ -44,6 +47,7 @@
     "@faker-js/faker": "^7.6.0",
     "@jest/globals": "^29.3.1",
     "@types/jest": "^28.1.8",
+    "@types/minio": "^7.0.15",
     "@types/node": "^18.11.18",
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack-bundle-analyzer": "^4.4.1",

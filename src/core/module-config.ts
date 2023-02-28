@@ -1,7 +1,12 @@
 /**
- * FdpConnectModuleConfig is the configuration object for the FdpConnectModule.
+ * ModuleConfig is the configuration object for the FdpConnectModule.
  */
-export class FdpConnectModuleConfig {
-  providers: Record<string, Record<string, string | object>> = {}
-  scopes: string[] = ['files:read', 'directory:read']
+export class ModuleConfig {
+  providers: Record<string, ProviderConfig> = {}
+}
+
+export class ProviderConfig {
+  options: Record<string, string | object> = {}
+  driver: any
+  type = ''
 }

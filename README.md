@@ -10,37 +10,42 @@ Fairdrive Connector - integrate data sources from Web 2.0 or Web 3.0 using Origi
 - [Usage](#usage)
 - [API](#api)
 - [Drivers](#drivers)
+- [References](#references)
 - [License](#license)
 
 ## Install
 
-`npm install @fairdatasociety/fairdrive-connector`
+`npm install @fairdatasociety/fairdrive-opfs`
 
 ## Usage
 ```typescript
-import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-connector'
+import { FdpConnectModule, FairosProvider, IPFSMfsProvider } from '@fairdatasociety/fairdrive-opfs'
 import { fileSave } from 'browser-fs-access'
 
 // Add providers
 const module = new FdpConnectModule({
   providers: {
-    fairos: {
-      options: {
-        host: 'https://fairos.staging.fairdatasociety.org/',
-      },
-      provider: '@fairdatasociety/fairdrive-connector/providers/fairos',
-    },
     ipfs: {
       options: {
-        host: 'http://localhost:5001/api/v0/',
+        host: 'http://localhost:5001',
       },
-      provider: '@fairdatasociety/fairdrive-connector/providers/ipfs-mfs',
-    },    
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'IPFSMfsProvider',
+    },
+    fairos: {
+      options: {
+        username: '',
+        password: '',
+        host: 'https://fairos.fairdatasociety.org/',
+      },
+      driver: import('@fairdatasociety/fairdrive-opfs'),
+      type: 'FairosProvider',
+    },
   },
 })
 
 // Connect to Fairos
-const connector = await module.connect('fairos', FairosProvider)
+const connector = await module.connect('fairos')
 
 // Provider calls that manage authentication, authz and mounts are at the top level
 await connector.userLogin(process.env.REACT_APP_USERNAME, process.env.REACT_APP_PASSWORD)
@@ -52,8 +57,6 @@ const selectedMount = {
   name: podList[0],
   path: '/'
 }
-
-await connector.podOpen(selectedMount)
 
 // OPFS driver interface is available with getFSHandler
 const currentFolderHandle = await connector.getFSHandler(selectedMount)
@@ -110,12 +113,66 @@ const DefaultMount = {
 }
 await ipfsConnector.filesystemDriver.upload(file, DefaultMount, {})
 
+
+
+// ===================================
+// File transfer to other provider
+// ===================================
+const from = module.getConnectedProviders('ipfs')
+const to = module.getConnectedProviders('fairos')
+
+// Create a new FileSync object
+const syncToFairos = new FileSync(to);
+
+// or create one with getTransferHandler
+const syncToFairos = module.getConnectedProviders('fairos').getTransferHandler()
+
+syncToFairos.onStart.subscribe((file, mount) => {
+  // ...
+})
+syncToFairos.onComplete.subscribe((result) => {
+  // ...
+})
+syncToFairos.onError.subscribe((err) => {
+  // ...
+})
+
+await syncToFairos.transfer(file, mount)
 ```
 
 ## Drivers
 
-- Fairos: `@fairdatasociety/fairdrive-connector/providers/fairos`
-- IPFS-Mfs: `@fairdatasociety/fairdrive-connector/providers/ipfs-mfs`
+###  Fairos
+
+
+> `@fairdatasociety/fairdrive-opfs/providers/fairos`
+
+#### Configuration
+
+
+- `host`: Fairos RPC
+- `username`: Username
+- `password`: Password
+
+### IPFS-Mfs
+> `@fairdatasociety/fairdrive-opfs/providers/ipfs-mfs`
+#### Configuration
+
+
+- `host`: IPFS RPC
+
+
+### S3-compatible (AWS S3, Minio)
+> `@fairdatasociety/fairdrive-opfs/providers/s3`
+#### Configuration
+
+
+- `accessKeyId`: Access Key id
+- `secretAccessKey`: Secret access key
+- `region`: Region
+- `useSSL`: Enables SSL/TLS
+- `port`: RPC port
+- `endpoint`: RPC endpoint
 
 ### Implementing a new Fairdrive Connector
 
@@ -245,6 +302,13 @@ See `/docs` for generated TypeScript documentation.
 ## Maintainers
 
 - [molekilla](https://github.com/molekilla)
+
+## References
+
+- [File System standard specification](https://fs.spec.whatwg.org/)
+- [browser-fs-access](https://github.com/GoogleChromeLabs/browser-fs-access)
+- [native-file-system-adapter](https://github.com/jimmywarting/native-file-system-adapter/)
+- [BrowserFS](https://github.com/jvilk/browserfs)
 
 ## License
 
