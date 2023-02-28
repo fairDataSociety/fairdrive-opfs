@@ -34,6 +34,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import { AccordionActions, Checkbox, MenuItem } from '@mui/material'
 import AddHomeIcon from '@mui/icons-material/AddHome'
 import FormControl from '@mui/material/FormControl'
+import ShareIcon from '@mui/icons-material/Share'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Select from '@mui/material/Select'
 
@@ -97,6 +98,10 @@ export const DemoFSBrowser = ({ id, name }) => {
   const [openMount, setOpenMount] = React.useState(false)
   const [openCreateFolder, setOpenCreateFolder] = React.useState(false)
   const [openCreateRootFolder, setOpenCreateRootFolder] = React.useState(false)
+  const [openTransferDialog, setTransferDialog] = React.useState(false)
+  const [destinationMount, setDestinationMount] = React.useState('')
+  const [destinationProvider, setDestinationProvider] = React.useState('')
+  const [selectedFileName, setSelectedFileName] = React.useState('')
 
   const handleOpenSettings = () => {
     setOpenSettings(true)
@@ -216,6 +221,31 @@ export const DemoFSBrowser = ({ id, name }) => {
     setLoading(false)
   }
 
+  async function handleTransfer() {
+    setLoadingMessage(
+      `Transfer ${selectedFileHandle.handle.name}} to ${destinationProvider} at ${destinationMount}`,
+    )
+    setLoading(true)
+
+    const handle = selectedFileHandle.handle
+    const blob = await handle.getFile()
+
+    // connect to destination
+    const module = new FdpConnectModule(providerSettings)
+    const conn = await module.connect(destinationProvider)
+
+    const sender = conn.getTransferHandler()
+
+    await sender.transfer(blob, {
+      name: destinationMount,
+      path: '/',
+    })
+
+    setLoadingMessage('')
+    setLoading(false)
+    setTransferDialog(false)
+  }
+
   async function handleFileDownload() {
     const h = selectedFileHandle.handle
     const blob = h.getFile()
@@ -293,10 +323,12 @@ export const DemoFSBrowser = ({ id, name }) => {
   const handleAction = podItem =>
     useCallback(
       data => {
+        if (!data.payload.file) return
         setSelectedFileHandle(data.payload.file)
+        setSelectedFileName(data.payload.file.handle.name)
         setIsSelected(true)
       },
-      [podItem, loading, selectedFileHandle],
+      [podItem, selectedFileHandle],
     )
 
   return (
@@ -328,6 +360,13 @@ export const DemoFSBrowser = ({ id, name }) => {
                   setOpenCreateFolder(true)
                 }}
                 startIcon={<CreateNewFolderIcon />}
+              ></Button>
+              <Button
+                disabled={!isMounted}
+                onClick={e => {
+                  setTransferDialog(true)
+                }}
+                startIcon={<ShareIcon />}
               ></Button>
               <Button
                 onClick={handleFileDownload}
@@ -592,6 +631,41 @@ export const DemoFSBrowser = ({ id, name }) => {
           <Button onClick={handleCreateFolder}>Apply</Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={openTransferDialog} onClose={e => setTransferDialog(false)}>
+        <DialogTitle>Transfer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Set destination</DialogContentText>
+        </DialogContent>
+        <div>File: {selectedFileName}</div>
+        <div>
+          <TextField
+            required
+            label="Mount"
+            variant="standard"
+            onChange={e => setDestinationMount(e.target.value)}
+          />
+        </div>
+        <div>
+          <TextField
+            required
+            label="Provider"
+            variant="standard"
+            onChange={e => setDestinationProvider(e.target.value)}
+          />
+        </div>
+        <DialogActions>
+          <Button
+            onClick={e => {
+              setTransferDialog(false)
+            }}
+          >
+            Close
+          </Button>
+          <Button onClick={handleTransfer}>Apply</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={openCreateRootFolder} onClose={e => setOpenCreateRootFolder(false)}>
         <DialogTitle>Set S3 Bucket</DialogTitle>
         <DialogContent>
