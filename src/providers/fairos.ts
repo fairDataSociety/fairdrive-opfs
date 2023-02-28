@@ -78,7 +78,7 @@ export class FairosProviderDriver implements ProviderDriver {
       credentials: 'include',
     })
 
-    if (res.status === 200 && res.size > 0) {
+    if (res.status === 200) {
       const data = await res.json()
 
       return {
